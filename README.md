@@ -3,7 +3,7 @@
 Tema: A decidir
 
 Participantes:
-- Igor Roberto Alves
+- IGOR ROBERTO ALVES
 - GABRIEL DA SILVA OLIVEIRA
 - GABRIEL DE SOUZA VIEIRA
 - GIOVANI FIRMINO MOTA
