@@ -139,7 +139,6 @@ def main():
                 if isinstance(cell, Tree):
                     if cell.condition == "burning":
                         incendio = False
-            print(row)
         if incendio:
             forest.incendio()
 
