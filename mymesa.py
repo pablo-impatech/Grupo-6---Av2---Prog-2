@@ -70,23 +70,32 @@ class Tree:
                         random.random() < probability / 100
                     ):  # queima o vizinho com probabilidade 1 - densidade da árvore
                         neighbor.next_condition = "tick"
-                        """
-                            é preciso pensar bem nesta parte, ao usar tick, evita o problema
-                            de queimar tudo de uma vez, porém não fica tão fluido a ação do fogo
-                                                        
-                            """
+
+    def burn_continuos(self, matriz, vent):
+        for neighbor in self.neighbors(matriz):
+            if neighbor.condition == "alive" and neighbor.next_condition != "burning":
+                probability = min(100 - neighbor.density - 40, 10)
+                if vent.directions:
+                    if neighbor in vent.neighbors_vento(self, matriz):
+                        probability = min(60, probability + 10)
+                    else:
+                        probability = max(10, probability - 20)
+                if (
+                    random.random() < probability / 100
+                ):  # queima o vizinho com probabilidade 1 - densidade da árvore
+                    neighbor.next_condition = "tick"
 
     def update_condition(self, forest):
         matriz = forest.matriz
         vent = forest.vent
-        if (
-            self.next_condition == "burned"
-        ):  # Se o próximo estágio é queimada esvazia seu lugar na matriz
+        if self.next_condition == "burned":
             self.next_condition = "step"
             self.condition = "burned"
+            self.burn_continuos(matriz, vent)
 
         elif self.next_condition == "step":
             self.step += 1
+            self.burn_continuos(matriz, vent)
             if self.step == 3:
                 self.next_condition = "final"
 
@@ -241,7 +250,7 @@ def main():
     screen.fill((85, 107, 47))
     pygame.display.set_caption("Forest Fire Simulation")
 
-    matriz = [[Tree((i, j)) for j in range(50)] for i in range(28)]
+    matriz = [[Tree((i, j)) for j in range(60)] for i in range(28)]
 
     forest = Forest(matriz)
     forest.vent = (
