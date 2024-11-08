@@ -6,11 +6,11 @@ import matplotlib.pyplot as plt
 # Inicialização do Pygame
 pygame.init()
 
-TREE_ALIVE_IMG = pygame.image.load("forest_fire_new\images\Tree_Small.png")
-TREE_BURNING_IMG = pygame.image.load("forest_fire_new\images\Fire_Small.png")
-WATER_IMG = pygame.image.load("forest_fire_new\images\pixil-frame-0 (2).png")
-START_IMG = pygame.image.load("forest_fire_new\images\shadedDark42.png")
-TREE_BURNED_IMG = pygame.image.load("forest_fire_new\images\pixil-frame-0 (4).png")
+TREE_ALIVE_IMG = pygame.image.load("images\Tree_Small.png")
+TREE_BURNING_IMG = pygame.image.load("images\Fire_Small.png")
+WATER_IMG = pygame.image.load("images\pixil-frame-0 (2).png")
+START_IMG = pygame.image.load("images\shadedDark42.png")
+TREE_BURNED_IMG = pygame.image.load("images\pixil-frame-0 (4).png")
 
 cell_size = 25
 TREE_ALIVE_IMG = pygame.transform.scale(TREE_ALIVE_IMG, (cell_size, cell_size))
@@ -302,7 +302,6 @@ def main():
                         burning += 1
                     if cell.next_condition == "burning":
                         incendio = False
-        print(matriz)
         if incendio:
             pass
             # forest.incendio() #caso o incêndio acabe inicia um novo
