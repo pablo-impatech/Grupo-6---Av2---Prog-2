@@ -10,11 +10,13 @@ TREE_ALIVE_IMG = pygame.image.load("forest_fire_new\images\Tree_Small.png")
 TREE_BURNING_IMG = pygame.image.load("forest_fire_new\images\Fire_Small.png")
 WATER_IMG = pygame.image.load("forest_fire_new\images\pixil-frame-0 (2).png")
 START_IMG = pygame.image.load("forest_fire_new\images\shadedDark42.png")
+TREE_BURNED_IMG = pygame.image.load("forest_fire_new\images\pixil-frame-0 (4).png")
 
 cell_size = 25
 TREE_ALIVE_IMG = pygame.transform.scale(TREE_ALIVE_IMG, (cell_size, cell_size))
 TREE_BURNING_IMG = pygame.transform.scale(TREE_BURNING_IMG, (cell_size, cell_size))
 WATER_IMG = pygame.transform.scale(WATER_IMG, (cell_size, cell_size))
+TREE_BURNED_IMG = pygame.transform.scale(TREE_BURNED_IMG, (cell_size, cell_size))
 
 
 class Tree:
@@ -25,6 +27,7 @@ class Tree:
         self.x = coord[0]
         self.y = coord[1]
         self.count = 0
+        self.step = 0
 
     def neighbors(self, matriz):
         lista = []
@@ -58,10 +61,11 @@ class Tree:
                     and neighbor.next_condition != "burning"
                 ):
                     probability = 100 - neighbor.density
-                    if neighbor in vent.neighbors_vento(self, matriz):
-                        probability = min(80, probability + 30)
-                    else:
-                        probability = max(40, probability - 20)
+                    if vent.directions:
+                        if neighbor in vent.neighbors_vento(self, matriz):
+                            probability = min(80, probability + 30)
+                        else:
+                            probability = max(40, probability - 20)
                     if (
                         random.random() < probability / 100
                     ):  # queima o vizinho com probabilidade 1 - densidade da árvore
@@ -78,13 +82,22 @@ class Tree:
         if (
             self.next_condition == "burned"
         ):  # Se o próximo estágio é queimada esvazia seu lugar na matriz
+            self.next_condition = "step"
+            self.condition = "burned"
+
+        elif self.next_condition == "step":
+            self.step += 1
+            if self.step == 3:
+                self.next_condition = "final"
+
+        elif self.next_condition == "final":
             matriz[self.x][self.y] = "v"
 
         if self.next_condition == "burning":  # Se o próximo estágio é queimando
             self.attempt_to_burn(matriz, vent)  # queima os vizinhos
             self.count += 1
             self.condition = self.next_condition
-            if self.count == 2:
+            if self.count == 4:
                 self.next_condition = "burned"
 
         if (
@@ -209,6 +222,8 @@ def draw_forest(screen, forest):
                     screen.blit(TREE_ALIVE_IMG, (j * cell_size, i * cell_size))
                 elif cell.condition == "burning":
                     screen.blit(TREE_BURNING_IMG, (j * cell_size, i * cell_size))
+                elif cell.condition == "burned":
+                    screen.blit(TREE_BURNED_IMG, (j * cell_size, i * cell_size))
             elif isinstance(cell, Barrier):
                 # pygame.draw.rect(screen, (173, 216, 230), (j * cell_size, i * cell_size, cell_size, cell_size))
                 screen.blit(WATER_IMG, (j * cell_size, i * cell_size))
@@ -226,12 +241,13 @@ def main():
     screen.fill((85, 107, 47))
     pygame.display.set_caption("Forest Fire Simulation")
 
-    matriz = [[Tree((i, j)) for j in range(50)] for i in range(30)]
+    matriz = [[Tree((i, j)) for j in range(50)] for i in range(28)]
 
     forest = Forest(matriz)
     forest.vent = (
         vento()
     )  # A floresta agora estará sobre a ação de um vento com direção aleatória
+    print(forest.vent.directions)
     alive_burning_burned = []
     running = True
     button_width, button_height = START_IMG.get_width(), START_IMG.get_height()
@@ -286,6 +302,7 @@ def main():
                         burning += 1
                     if cell.next_condition == "burning":
                         incendio = False
+        print(matriz)
         if incendio:
             pass
             # forest.incendio() #caso o incêndio acabe inicia um novo
@@ -297,14 +314,12 @@ def main():
         time.sleep(0.2)
 
     pygame.quit()
-    print(alive_burning_burned)
 
     def graph():
         first_values = [item[0] for item in alive_burning_burned]
         second_values = [item[1] for item in alive_burning_burned]
         third_values = [item[2] for item in alive_burning_burned]
         x = list(range(len(alive_burning_burned)))
-        print(alive_burning_burned)
         plt.plot(x, first_values, label="Árvores vivas")
         plt.plot(x, second_values, label="Árvores queimando")
         plt.plot(x, third_values, label="Árvores queimadas")
