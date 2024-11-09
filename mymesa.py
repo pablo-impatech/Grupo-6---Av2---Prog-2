@@ -7,11 +7,11 @@ import matplotlib.pyplot as plt
 # Inicialização do Pygame
 pygame.init()
 
-TREE_ALIVE_IMG = pygame.image.load(os.path.join('images', 'Tree_Small.png'))
-TREE_BURNING_IMG = pygame.image.load(os.path.join('images', 'Fire_Small.png'))
-WATER_IMG = pygame.image.load(os.path.join('images', "pixil-frame-0 (2).png"))
-START_IMG = pygame.image.load(os.path.join('images', "shadedDark42.png"))
-TREE_BURNED_IMG = pygame.image.load(os.path.join('images', "pixil-frame-0 (4).png"))
+TREE_ALIVE_IMG = pygame.image.load(os.path.join("images", "Tree_Small.png"))
+TREE_BURNING_IMG = pygame.image.load(os.path.join("images", "Fire_Small.png"))
+WATER_IMG = pygame.image.load(os.path.join("images", "pixil-frame-0 (2).png"))
+START_IMG = pygame.image.load(os.path.join("images", "shadedDark42.png"))
+TREE_BURNED_IMG = pygame.image.load(os.path.join("images", "pixil-frame-0 (4).png"))
 
 cell_size = 25
 TREE_ALIVE_IMG = pygame.transform.scale(TREE_ALIVE_IMG, (cell_size, cell_size))
@@ -20,6 +20,8 @@ WATER_IMG = pygame.transform.scale(WATER_IMG, (cell_size, cell_size))
 TREE_BURNED_IMG = pygame.transform.scale(TREE_BURNED_IMG, (cell_size, cell_size))
 
 
+# OLÁ
+# OLÀ
 class Tree:
     def __init__(self, coord):
         self.condition = "alive"
