@@ -7,17 +7,48 @@ import matplotlib.pyplot as plt
 # Inicialização do Pygame
 pygame.init()
 
-TREE_ALIVE_IMG = pygame.image.load(os.path.join('images', 'Tree_Small.png'))
-TREE_BURNING_IMG = pygame.image.load(os.path.join('images', 'Fire_Small.png'))
-WATER_IMG = pygame.image.load(os.path.join('images', "pixil-frame-0 (2).png"))
-START_IMG = pygame.image.load(os.path.join('images', "shadedDark42.png"))
-TREE_BURNED_IMG = pygame.image.load(os.path.join('images', "pixil-frame-0 (4).png"))
+TREE_ALIVE_IMG = pygame.image.load(os.path.join("images", "Tree_Small.png"))
+TREE_BURNING_IMG = pygame.image.load(os.path.join("images", "Fire_Small.png"))
+WATER_IMG = pygame.image.load(os.path.join("images", "pixil-frame-0 (2).png"))
+START_IMG = pygame.image.load(os.path.join("images", "shadedDark42.png"))
+TREE_BURNED_IMG = pygame.image.load(os.path.join("images", "pixil-frame-0 (4).png"))
+BUTTOM_UP_IMG = pygame.image.load(os.path.join("images", "shadedDark03.png"))
+BUTTOM_LEFT_IMG = pygame.image.load(os.path.join("images", "shadedDark05.png"))
+BUTTOM_DOWN_IMG = pygame.image.load(os.path.join("images", "shadedDark10.png"))
+BUTTOM_RIGHT_IMG = pygame.image.load(os.path.join("images", "shadedDark06.png"))
+BUTTOM_X_IMG = pygame.image.load(os.path.join("images", "shadedDark35.png"))
+BUTTOM_PAUSE_IMG = pygame.image.load(os.path.join("images", "shadedDark44.png"))
 
 cell_size = 25
 TREE_ALIVE_IMG = pygame.transform.scale(TREE_ALIVE_IMG, (cell_size, cell_size))
 TREE_BURNING_IMG = pygame.transform.scale(TREE_BURNING_IMG, (cell_size, cell_size))
 WATER_IMG = pygame.transform.scale(WATER_IMG, (cell_size, cell_size))
 TREE_BURNED_IMG = pygame.transform.scale(TREE_BURNED_IMG, (cell_size, cell_size))
+BUTTOM_UP_IMG = pygame.transform.scale(BUTTOM_UP_IMG, (2 * cell_size, 2 * cell_size))
+BUTTOM_LEFT_IMG = pygame.transform.scale(
+    BUTTOM_LEFT_IMG, (2 * cell_size, 2 * cell_size)
+)
+BUTTOM_DOWN_IMG = pygame.transform.scale(
+    BUTTOM_DOWN_IMG, (2 * cell_size, 2 * cell_size)
+)
+BUTTOM_RIGHT_IMG = pygame.transform.scale(
+    BUTTOM_RIGHT_IMG, (2 * cell_size, 2 * cell_size)
+)
+BUTTOM_X_IMG = pygame.transform.scale(BUTTOM_X_IMG, (2 * cell_size, 2 * cell_size))
+
+
+class buttom:
+    def __init__(self, x, y, width, height):
+        self.width = width
+        self.height = height
+        self.x = x
+        self.y = y
+
+    def is_button_clicked(self, pos):
+        return (
+            self.x <= pos[0] <= self.x + self.width
+            and self.y <= pos[1] <= self.y + self.height
+        )
 
 
 class Tree:
@@ -65,8 +96,10 @@ class Tree:
                     if vent.directions:
                         if neighbor in vent.neighbors_vento(self, matriz):
                             probability = min(80, probability + 30)
+                            probability = 100  # Probabilidade determinada assim para melhorar a visualização do vento
                         else:
                             probability = max(40, probability - 20)
+                            probability = 0
                     if (
                         random.random() < probability / 100
                     ):  # queima o vizinho com probabilidade 1 - densidade da árvore
@@ -79,8 +112,10 @@ class Tree:
                 if vent.directions:
                     if neighbor in vent.neighbors_vento(self, matriz):
                         probability = min(60, probability + 10)
+                        probability = 100  # Probabilidade determinada assim para melhorar a visualização do vento
                     else:
                         probability = max(10, probability - 20)
+                        probability = 0
                 if (
                     random.random() < probability / 100
                 ):  # queima o vizinho com probabilidade 1 - densidade da árvore
@@ -188,7 +223,7 @@ class Forest:
         self.vent = vento(1)
 
     def incendio(self):
-        while True:
+        for i in range(5):
             k = random.randint(0, self.n - 1)
             l = random.randint(0, self.m - 1)
             if (
@@ -215,7 +250,7 @@ class Forest:
         for i in range(self.n):
             for j in range(self.m):
                 if self.matriz[i][j] == "v":
-                    a = random.randint(1, 5)
+                    a = random.randint(1, 30)
                     if a == 1:
                         self.matriz[i][j] = Tree((i, j))
 
@@ -235,12 +270,11 @@ def draw_forest(screen, forest):
                 elif cell.condition == "burned":
                     screen.blit(TREE_BURNED_IMG, (j * cell_size, i * cell_size))
             elif isinstance(cell, Barrier):
-                # pygame.draw.rect(screen, (173, 216, 230), (j * cell_size, i * cell_size, cell_size, cell_size))
                 screen.blit(WATER_IMG, (j * cell_size, i * cell_size))
             if cell == "v":
                 pygame.draw.rect(
                     screen,
-                    (85, 107, 47),
+                    (95, 107, 47),
                     (j * cell_size, i * cell_size, cell_size, cell_size),
                 )
 
@@ -252,6 +286,7 @@ def main():
     pygame.display.set_caption("Forest Fire Simulation")
 
     matriz = [[Tree((i, j)) for j in range(60)] for i in range(28)]
+    matriz[20][20] = Barrier((20, 20))
 
     forest = Forest(matriz)
     forest.vent = (
@@ -260,46 +295,112 @@ def main():
     print(forest.vent.directions)
     alive_burning_burned = []
     running = True
+
+    # Criando os botões
     button_width, button_height = START_IMG.get_width(), START_IMG.get_height()
     button_x, button_y = 30 * cell_size, 15 * cell_size
+    start_but = buttom(button_x, button_y, button_width, button_height)
 
-    def is_button_clicked(pos):
-        return (
-            button_x <= pos[0] <= button_x + button_width
-            and button_y <= pos[1] <= button_y + button_height
-        )
+    button_x, button_y = 5 * cell_size, 19 * cell_size
+    button_width, button_height = BUTTOM_UP_IMG.get_width(), BUTTOM_UP_IMG.get_height()
+    up_but = buttom(button_x, button_y, button_width, button_height)
+
+    button_y = 23 * cell_size
+    down_but = buttom(button_x, button_y, button_width, button_height)
+    button_x = 3 * cell_size
+    button_y = 21 * cell_size
+    left_but = buttom(button_x, button_y, button_width, button_height)
+    button_x = 7 * cell_size
+    right_but = buttom(button_x, button_y, button_width, button_height)
+    button_x = 5 * cell_size
+    x_but = buttom(button_x, button_y, button_width, button_height)
+    button_x = 53 * cell_size
+    button_y = 25 * cell_size
+    button_width, button_height = (
+        BUTTOM_PAUSE_IMG.get_width(),
+        BUTTOM_PAUSE_IMG.get_height(),
+    )
+    pause_but = buttom(button_x, button_y, button_width, button_height)
+    pause_but_appear = False
+    but_directions = True
 
     # Flag que controla a exibição do botão
-    button_visible = True
+    start_visible = True
     start = False  # Controle para verificar se o incêndio deve iniciar
-
+    aux = False
+    start2 = False
+    loading = True
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
             elif event.type == pygame.MOUSEBUTTONDOWN:
-                if is_button_clicked(event.pos) and button_visible:
+                if start_but.is_button_clicked(event.pos) and start_visible:
+                    if start2:
+                        loading = True
+
                     print("Botão clicado!")
-                    button_visible = False  # Esconde o botão após o clique
+                    start_visible = False  # Esconde o botão após o clique
                     start = True  # Inicia o incêndio após o clique
+
+                if up_but.is_button_clicked(event.pos):
+                    print("up clicado")
+                    forest.vent = vento("N")
+
+                if down_but.is_button_clicked(event.pos):
+                    print("down clicado")
+                    forest.vent = vento("S")
+
+                if right_but.is_button_clicked(event.pos):
+                    print("right clicado")
+                    forest.vent = vento("L")
+
+                if left_but.is_button_clicked(event.pos):
+                    print("left clicado")
+                    forest.vent = vento("O")
+
+                if x_but.is_button_clicked(event.pos):
+                    print("x clicado")
+                    forest.vent = vento()
+
+                if pause_but.is_button_clicked(event.pos):
+                    print("pause clicado")
+                    start_visible = True
+                    pause_but_appear = False
+                    start2 = True
+                    loading = False
 
         screen.fill((85, 107, 47))
         draw_forest(screen, forest)
 
         # Desenhar o botão apenas se ele estiver visível
-        if button_visible:
-            screen.blit(START_IMG, (button_x, button_y))
+        if start_visible:
+            screen.blit(START_IMG, (start_but.x, start_but.y))
+
+        if but_directions:
+            screen.blit(BUTTOM_UP_IMG, (up_but.x, up_but.y))
+            screen.blit(BUTTOM_DOWN_IMG, (down_but.x, down_but.y))
+            screen.blit(BUTTOM_LEFT_IMG, (left_but.x, left_but.y))
+            screen.blit(BUTTOM_RIGHT_IMG, (right_but.x, right_but.y))
+            screen.blit(BUTTOM_X_IMG, (x_but.x, x_but.y))
+
+        if pause_but_appear:
+            screen.blit(BUTTOM_PAUSE_IMG, (pause_but.x, pause_but.y))
 
         pygame.display.flip()  # Atualiza a tela
 
         if start:
             forest.incendio()  # Inicia o incêndio
             start = False
+            aux = True
+            pause_but_appear = True
 
         burned = 0
         burning = 0
         alive = 0
-        incendio = True
+        incendio = False
+        if aux:
+            incendio = True
         for row in matriz:
             for cell in row:
                 if cell == "v":
@@ -313,14 +414,13 @@ def main():
                     if cell.next_condition == "burning":
                         incendio = False
         if incendio:
-            pass
-            # forest.incendio() #caso o incêndio acabe inicia um novo
+            forest.incendio()  # caso o incêndio acabe inicia um novo
 
         alive_burning_burned.append((alive, burning, burned))
-
-        forest.update_forest()
-
-        time.sleep(0.2)
+        if loading:
+            forest.update_forest()
+            forest.surge_trees()
+        time.sleep(0.01)
 
     pygame.quit()
 
@@ -333,7 +433,7 @@ def main():
         plt.plot(x, second_values, label="Árvores queimando")
         plt.plot(x, third_values, label="Árvores queimadas")
 
-        plt.title("Gráfico de três curvas com valores dos trios")
+        plt.title("")
         plt.xlabel("Índice")
         plt.ylabel("Valor")
         plt.legend()
