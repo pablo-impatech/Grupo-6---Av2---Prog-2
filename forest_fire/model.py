@@ -1,20 +1,22 @@
 import mesa
 
 from .agent import TreeCell
-
+from random import randint
 
 class ForestFire(mesa.Model):
     """
     Simple Forest Fire model.
     """
 
-    def __init__(self, width=100, height=100, density=0.65):
+    def __init__(self, width=100, height=100, density=0.65, multiple_flames=False, fire=0.01):
         """
         Create a new forest fire model.
 
         Args:
-            width, height: The size of the grid to model
+            width, height: The size of the grid to model.
             density: What fraction of grid cells have a tree in them.
+            multiple_flames: Set more than one tree on fire.
+            fire: What fraction of trees starts on fire (to multiple_flames=True).
         """
         super().__init__()
         # Set up model objects
@@ -28,14 +30,23 @@ class ForestFire(mesa.Model):
                 "Burned Out": lambda m: self.count_type(m, "Burned Out"),
             }
         )
+        
+        # Set one tree in a random cell on fire with Prob = 1
+        fire_pos = (None, None)
+        if not multiple_flames:
+            fire_pos = (randint(0, self.grid.width - 1), randint(0, self.grid.height - 1))
+            fire_tree = TreeCell((fire_pos[0], fire_pos[1]), self)
+            fire_tree.condition = "On Fire"
+            self.grid.place_agent(fire_tree, (fire_pos[0], fire_pos[1]))
+            self.schedule.add(fire_tree)
 
         # Place a tree in each cell with Prob = density
         for contents, (x, y) in self.grid.coord_iter():
-            if self.random.random() < density:
+            if self.random.random() < density and (x, y) != fire_pos:
                 # Create a tree
                 new_tree = TreeCell((x, y), self)
-                # Set all trees in the first column on fire.
-                if x == 0:
+                # Set a tree on fire with Prob = fire
+                if self.random.random() < fire and multiple_flames:
                     new_tree.condition = "On Fire"
                 self.grid.place_agent(new_tree, (x, y))
                 self.schedule.add(new_tree)
