@@ -8,7 +8,9 @@ import matplotlib.pyplot as plt
 pygame.init()
 
 TREE_ALIVE_IMG = pygame.image.load(os.path.join("images", "Tree_Small.png"))
+ALIVE_TO_BURNING_IMGs = [pygame.image.load(os.path.join('images\\alive_to_burning', f'alive_to_burning_{k}.png')) for k in range(3)]
 TREE_BURNING_IMG = pygame.image.load(os.path.join("images", "Fire_Small.png"))
+BURNING_TO_BURNED_IMGs = [pygame.image.load(os.path.join('images\\burning_to_burned', f'burning_to_burned_{k}.png')) for k in range(3)]
 WATER_IMG = pygame.image.load(os.path.join("images", "pixil-frame-0 (2).png"))
 START_IMG = pygame.image.load(os.path.join("images", "shadedDark42.png"))
 TREE_BURNED_IMG = pygame.image.load(os.path.join("images", "pixil-frame-0 (4).png"))
@@ -21,7 +23,11 @@ BUTTOM_PAUSE_IMG = pygame.image.load(os.path.join("images", "shadedDark44.png"))
 
 cell_size = 25
 TREE_ALIVE_IMG = pygame.transform.scale(TREE_ALIVE_IMG, (cell_size, cell_size))
+for i, imagem in enumerate(ALIVE_TO_BURNING_IMGs):
+    ALIVE_TO_BURNING_IMGs[i] = pygame.transform.scale(imagem, (cell_size, cell_size))
 TREE_BURNING_IMG = pygame.transform.scale(TREE_BURNING_IMG, (cell_size, cell_size))
+for i, imagem in enumerate(BURNING_TO_BURNED_IMGs):
+    BURNING_TO_BURNED_IMGs[i] = pygame.transform.scale(imagem, (cell_size, cell_size))
 WATER_IMG = pygame.transform.scale(WATER_IMG, (cell_size, cell_size))
 TREE_BURNED_IMG = pygame.transform.scale(TREE_BURNED_IMG, (cell_size, cell_size))
 BUTTOM_UP_IMG = pygame.transform.scale(BUTTOM_UP_IMG, (2 * cell_size, 2 * cell_size))
@@ -258,7 +264,18 @@ class Forest:
         self.matriz[coord[0]][coord[1]] == Tree((coord[0], coord[1]))
 
 
-def draw_forest(screen, forest):
+def draw_forest(screen, forest, state):
+    def transition_alive_to_burning(i, j, state):
+        if state < 3:
+            screen.blit(ALIVE_TO_BURNING_IMGs[state], (j * cell_size, i * cell_size))
+        else:
+            screen.blit(TREE_BURNING_IMG, (j * cell_size, i * cell_size))
+    def transition_burning_to_burned(i, j, state):
+        if state < 3:
+            screen.blit(BURNING_TO_BURNED_IMGs[state], (j * cell_size, i * cell_size))
+        else:
+            screen.blit(TREE_BURNED_IMG, (j * cell_size, i * cell_size))
+
     for i in range(forest.n):
         for j in range(forest.m):
             cell = forest.matriz[i][j]
@@ -266,9 +283,9 @@ def draw_forest(screen, forest):
                 if cell.condition == "alive":
                     screen.blit(TREE_ALIVE_IMG, (j * cell_size, i * cell_size))
                 elif cell.condition == "burning":
-                    screen.blit(TREE_BURNING_IMG, (j * cell_size, i * cell_size))
+                    transition_alive_to_burning(i, j, state) # Animação de transição, viva pra queimando.
                 elif cell.condition == "burned":
-                    screen.blit(TREE_BURNED_IMG, (j * cell_size, i * cell_size))
+                    transition_burning_to_burned(i, j, state) # Animação de transição, queimando para queimada.
             elif isinstance(cell, Barrier):
                 screen.blit(WATER_IMG, (j * cell_size, i * cell_size))
             if cell == "v":
@@ -330,6 +347,7 @@ def main():
     aux = False
     start2 = False
     loading = True
+    state = 0
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -371,7 +389,7 @@ def main():
                     loading = False
 
         screen.fill((85, 107, 47))
-        draw_forest(screen, forest)
+        draw_forest(screen, forest, state)
 
         # Desenhar o botão apenas se ele estiver visível
         if start_visible:
@@ -420,7 +438,12 @@ def main():
         if loading:
             forest.update_forest()
             forest.surge_trees()
-        time.sleep(0.01)
+        
+        if state == 3:
+            state = 0
+        else:
+            state += 1
+        time.sleep(0.05)
 
     pygame.quit()
 
