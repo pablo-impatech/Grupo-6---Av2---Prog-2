@@ -6,6 +6,13 @@ from forest import Forest
 import images_but as im
 
 pygame.init()
+clock = pygame.time.Clock()
+
+# Passos por segundo
+STEPS_BY_SECOND = 30
+
+TIMERSTEPEVENT = pygame.USEREVENT + 1
+pygame.time.set_timer(TIMERSTEPEVENT, 1000 // STEPS_BY_SECOND)
 
 def draw_forest(screen, forest):
 
@@ -125,6 +132,22 @@ def main():
                     im.pause_but.visible = False
                     start2 = True
                     loading = False
+            elif event.type == TIMERSTEPEVENT:
+                if start:
+                    forest.incendio()  # Inicia o incêndio
+                    start = False
+
+                if loading:
+                    a = forest.update_forest()
+                    if a:
+                        forest.incendio()
+                    forest.update_forest()
+                    if bombeiros_andar:
+                        for bombeirx in bombeiros_vivos:
+                            bombeirx.andar()
+                            # bombeirx.probability_atualization()
+                            # leia sobre na função
+                            bombeirx.atualizar_bombeiro()
 
         screen.fill((85, 107, 47))
         draw_forest(screen, forest)
@@ -150,23 +173,7 @@ def main():
 
         pygame.display.flip()  # Atualiza a tela
 
-        if start:
-            forest.incendio()  # Inicia o incêndio
-            start = False
-    
-        if loading:
-            a = forest.update_forest()
-            if a:
-                forest.incendio()
-            forest.update_forest()
-            if bombeiros_andar:
-                for bombeirx in bombeiros_vivos:
-                    bombeirx.andar()
-                    # bombeirx.probability_atualization()
-                    # leia sobre na função
-                    bombeirx.atualizar_bombeiro()
-
-        time.sleep(0.01)
+        clock.tick(60) # Limita o FPS a 60
 
     pygame.quit()
 
