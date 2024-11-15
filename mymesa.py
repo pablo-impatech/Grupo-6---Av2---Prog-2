@@ -5,7 +5,12 @@ import agents as agent
 from forest import Forest 
 import images_but as im
 
+import pygame_widgets
+from pygame_widgets.slider import Slider
+from pygame_widgets.textbox import TextBox
+
 pygame.init()
+clock = pygame.time.Clock()
 
 def draw_forest(screen, forest):
 
@@ -82,9 +87,20 @@ def main():
     bombeiros_andar = False
     forest.surge_trees = True
 
-    while running:
+    # Passos por segundo
+    steps_by_second = 30
+    TIMERSTEPEVENT = pygame.USEREVENT + 1
+    pygame.time.set_timer(TIMERSTEPEVENT, 1000 // steps_by_second)
 
-        for event in pygame.event.get():
+    label = TextBox(screen, 15, 10, 270, 40, fontSize=23)
+    label.setText(f"Passos por segundo: {steps_by_second}")
+    label.disable()
+
+    slider = Slider(screen, 20, 60, 250, 12, min=1, max=100, step=1, initial=steps_by_second)
+
+    while running:
+        events = pygame.event.get()
+        for event in events:
             if event.type == pygame.QUIT:
                 running = False
             elif event.type == pygame.MOUSEBUTTONDOWN:
@@ -125,6 +141,27 @@ def main():
                     im.pause_but.visible = False
                     start2 = True
                     loading = False
+            elif event.type == TIMERSTEPEVENT:
+                if start:
+                    forest.incendio()  # Inicia o incêndio
+                    start = False
+
+                if loading:
+                    a = forest.update_forest()
+                    if a:
+                        forest.incendio()
+                    forest.update_forest()
+                    if bombeiros_andar:
+                        for bombeirx in bombeiros_vivos:
+                            bombeirx.andar()
+                            # bombeirx.probability_atualization()
+                            # leia sobre na função
+                            bombeirx.atualizar_bombeiro()
+
+        # Verifica se a velocidade foi alterada
+        if slider.getValue() != steps_by_second:
+            steps_by_second = slider.getValue()
+            pygame.time.set_timer(TIMERSTEPEVENT, 1000 // steps_by_second)
 
         screen.fill((85, 107, 47))
         draw_forest(screen, forest)
@@ -148,25 +185,12 @@ def main():
         if im.pause_but.visible:
             screen.blit(im.BUTTOM_PAUSE_IMG, (im.pause_but.x, im.pause_but.y))
 
+        label.setText(f"Passos por segundo: {slider.getValue()}")
+        pygame_widgets.update(events)
+
         pygame.display.flip()  # Atualiza a tela
 
-        if start:
-            forest.incendio()  # Inicia o incêndio
-            start = False
-    
-        if loading:
-            a = forest.update_forest()
-            if a:
-                forest.incendio()
-            forest.update_forest()
-            if bombeiros_andar:
-                for bombeirx in bombeiros_vivos:
-                    bombeirx.andar()
-                    # bombeirx.probability_atualization()
-                    # leia sobre na função
-                    bombeirx.atualizar_bombeiro()
-
-        time.sleep(0.01)
+        clock.tick(60) # Limita o FPS a 60
 
     pygame.quit()
 
