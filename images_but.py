@@ -7,6 +7,7 @@ pygame.init()
 size_of_w = pygame.display.get_desktop_sizes()
 tela_x = int(size_of_w[0][0])
 tela_y = int(size_of_w[0][1])
+EGG_IMG = pygame.image.load(os.path.join("images", "egg.png"))
 BUSH_BURN_IMG = pygame.image.load(os.path.join("images", "pixil-frame-0 (12).png"))
 BUSH_IMG = pygame.image.load(os.path.join("images", "pixil-frame-0 (11).png"))
 CHICKEN_IMG = pygame.image.load(os.path.join("images", "pixil-frame-0 (10).png"))
@@ -29,7 +30,8 @@ FIREMAN_BURNING1_IMG = pygame.image.load(
     os.path.join("images", "pixil-frame-0 (9).png")
 )
 
-cell_size = tela_x // 50
+cell_size = tela_x // 80
+EGG_IMG = pygame.transform.scale(EGG_IMG, (0.5 * cell_size, 0.5 * cell_size))
 BUSH_BURN_IMG = pygame.transform.scale(BUSH_BURN_IMG, (cell_size, cell_size))
 BUSH_IMG = pygame.transform.scale(BUSH_IMG, (cell_size, cell_size))
 CHICKEN_IMG = pygame.transform.scale(CHICKEN_IMG, (1.5 * cell_size, 1.5 * cell_size))

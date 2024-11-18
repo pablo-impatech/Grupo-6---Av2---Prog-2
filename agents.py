@@ -31,10 +31,12 @@ class Agent:
 
 
 class Animal(Agent):
-    def __init__(self, matriz):
+    def __init__(self, matriz, x=None, y=None, egg=False):
         self.matriz = matriz
         self.life = 1
         self.status = "alive"
+        self.egg = egg
+        self.step = 0
 
         # O animal nasce em uma posição aleatória
         while True:
@@ -43,6 +45,11 @@ class Animal(Agent):
             )
             if isinstance(matriz[self.x][self.y], Tree):
                 break
+
+        if x:
+            self.x = x
+        if y:
+            self.y = y
 
     def bush_proximo(self):
         queue = [(self.x, self.y, 0)]  # Posição atual e distância inicial
@@ -104,6 +111,8 @@ class Animal(Agent):
             if isinstance(neigh, Tree):
                 if neigh.condition == "burning":
                     self.life -= 0.01
+                    if self.egg:
+                        self.life -= 0.1
         if hungry:
             self.life -= 0.001
 
@@ -111,8 +120,17 @@ class Animal(Agent):
             self.status = "dead"
 
     def update_condition(self):
-        self.mover_para_bush()
-        self.update_life()
+        if not self.egg:
+            self.mover_para_bush()
+            self.update_life()
+            return self.procriar()
+        else:
+            self.step += 1
+            self.update_life()
+            if self.step == 20:
+                self.egg = False
+                self.life = 1
+        return None
 
     def andar(self):
 
@@ -143,6 +161,12 @@ class Animal(Agent):
         if directions_possi:
             a = random.choice(directions_possi)
             self.x, self.y = a[0], a[1]
+
+    def procriar(self):
+        if self.status == "alive":
+            a = random.randint(1, 500)
+            if a == 1:
+                return Animal(self.matriz, self.x, self.y, True)
 
 
 class bombeiro(Agent):
@@ -234,7 +258,7 @@ class buttom:
 class Tree(Agent):
     def __init__(self, coord):
         self.condition = "alive"
-        self.density = random.randint(50, 80)
+        self.density = random.randint(80, 90)
         self.next_condition = None
         self.x = coord[0]
         self.y = coord[1]
@@ -250,10 +274,10 @@ class Tree(Agent):
                 if vent.directions:
                     if neighbor in vent.neighbors_vento(self, matriz):
                         probability = min(80, probability + 30)
-                        probability = 100  # Probabilidade determinada assim para melhorar a visualização do vento
+                        # probability = 100  # Probabilidade determinada assim para melhorar a visualização do vento
                     else:
                         probability = max(40, probability - 20)
-                        probability = 0
+                        # probability = 0
                 if (
                     random.random() < probability / 100
                 ):  # queima o vizinho com probabilidade (1 - densidade da árvore)
@@ -310,13 +334,37 @@ class Barrier:  # representará barreiras como água ou muro, algo assim
         return "a"
 
 
-class Houses:
-    def __init__(self, coord):
-        self.x = coord[0]
-        self.y = coord[0]
+class Houses(Agent):
+    def __init__(self, coord, matriz):
+        self.x = coord[0][0]
+        self.x2 = coord[0][1]
+        self.y = coord[0][0]
+        self.y2 = coord[0][1]
+        self.peoples = random.randint(2, 10)
+        self.life = 1
+        self.condition = "alive"
+        self.matriz = matriz
 
     def __repr__(self):
         return "h"
+
+    def neighbors(self, matriz):
+        pass
+
+    def update_condition(self):
+        for neigh in self.neighbors(self.matriz):
+            if neigh.condition == "burning":
+                self.life -= 0.001
+            if neigh.condition == "burned":
+                self.life -= 0.0005
+            if self.life <= 0:
+                self.condition = "total_burned"
+
+            elif self.life <= 0.5:
+                self.condition = "burned"
+
+            elif self.life <= 0.8:
+                self.condition = "burning"
 
 
 class vento:
