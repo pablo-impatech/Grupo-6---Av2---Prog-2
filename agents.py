@@ -17,12 +17,9 @@ class Agent:
         ]
         for dx, dy in directions:
             nx, ny = self.x + dx, self.y + dy
-            if (
-                0 <= nx < len(matriz)
-                and 0 <= ny < len(matriz[0])
-                and isinstance(matriz[nx][ny], Tree)
-            ):
-                lista.append(matriz[nx][ny])
+            if 0 <= nx < len(matriz) and 0 <= ny < len(matriz[0]):
+                if isinstance(matriz[nx][ny], Tree) or isinstance(matriz[nx][ny], Bush):
+                    lista.append(matriz[nx][ny])
 
         return lista
 
@@ -31,6 +28,121 @@ class Agent:
 
     # O ideal ao criar um agente deve ser conter tudo que ele faz em update_condition
     # Assim facilitaria atualizar o agente a cada iteração
+
+
+class Animal(Agent):
+    def __init__(self, matriz):
+        self.matriz = matriz
+        self.life = 1
+        self.status = "alive"
+
+        # O animal nasce em uma posição aleatória
+        while True:
+            self.x, self.y = random.randint(0, len(matriz) - 1), random.randint(
+                0, len(matriz[0]) - 1
+            )
+            if isinstance(matriz[self.x][self.y], Tree):
+                break
+
+    def bush_proximo(self):
+        queue = [(self.x, self.y, 0)]  # Posição atual e distância inicial
+        visited = set()
+        visited.add((self.x, self.y))
+
+        while queue:
+            cx, cy, dist = queue.pop(0)
+
+            # Verifica se a célula atual é um arbusto
+            if isinstance(self.matriz[cx][cy], Bush):
+                return cx, cy
+
+            # Adiciona vizinhos à fila
+            for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+                nx, ny = cx + dx, cy + dy
+                if (
+                    0 <= nx < len(self.matriz)
+                    and 0 <= ny < len(self.matriz[0])
+                    and (nx, ny) not in visited
+                    and isinstance(self.matriz[nx][ny], (Tree, Bush))
+                ):
+                    queue.append((nx, ny, dist + 1))
+                    visited.add((nx, ny))
+
+        return None
+
+    def mover_para_bush(self):
+        destino = self.bush_proximo()
+        if destino:
+            dx = destino[0] - self.x
+            dy = destino[1] - self.y
+
+            # Normaliza o movimento para andar apenas uma célula por vez
+            if dx != 0:
+                dx = dx // abs(dx)
+            if dy != 0:
+                dy = dy // abs(dy)
+
+            novo_x = self.x + dx
+            novo_y = self.y + dy
+
+            # Verifica se a nova posição é válida
+            if (
+                0 <= novo_x < len(self.matriz)
+                and 0 <= novo_y < len(self.matriz[0])
+                and isinstance(self.matriz[novo_x][novo_y], (Tree, Bush))
+            ):
+                self.x = novo_x
+                self.y = novo_y
+        else:
+            self.andar()
+
+    def update_life(self):
+        hungry = True
+        for neigh in self.neighbors(self.matriz):
+            if isinstance(neigh, Bush):
+                hungry = False
+            if isinstance(neigh, Tree):
+                if neigh.condition == "burning":
+                    self.life -= 0.01
+        if hungry:
+            self.life -= 0.001
+
+        if self.life <= 0:
+            self.status = "dead"
+
+    def update_condition(self):
+        self.mover_para_bush()
+        self.update_life()
+
+    def andar(self):
+
+        direction = [
+            (0, 1),
+            (0, -1),
+            (1, 0),
+            (-1, 0),
+            (1, 1),
+            (-1, 1),
+            (1, -1),
+            (-1, -1),
+        ]
+        random.shuffle(direction)
+        directions_possi = []
+        for dx, dy in direction:
+            nx, ny = self.x + dx, self.y + dy
+            if (
+                0 <= nx < len(self.matriz)
+                and 0 <= ny < len(self.matriz[0])
+                and (
+                    isinstance(self.matriz[nx][ny], Tree) or self.matriz[nx][ny] == "v"
+                )
+            ):
+                self.x, self.y = nx, ny  # Move o bombeiro para a nova posição
+                directions_possi.append((nx, ny))
+
+        if directions_possi:
+            a = random.choice(directions_possi)
+            self.x, self.y = a[0], a[1]
 
 
 class bombeiro(Agent):
@@ -180,6 +292,13 @@ class Tree(Agent):
             return "b"
         if self.condition == "burned":
             return "0"
+
+
+class Bush(Tree):
+    def __init__(self, coord):
+        print("passei!")
+        super().__init__(coord)
+        self.density = random.randint(20, 50)  # Bushes têm densidade menor que árvores
 
 
 class Barrier:  # representará barreiras como água ou muro, algo assim

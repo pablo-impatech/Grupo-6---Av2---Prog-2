@@ -3,6 +3,7 @@ import time
 import agents as agent
 from forest import Forest
 import images_but as im
+import random
 
 import pygame_widgets
 from pygame_widgets.slider import Slider
@@ -17,7 +18,12 @@ def draw_forest(screen, forest):
     for i in range(forest.n):
         for j in range(forest.m):
             cell = forest.matriz[i][j]
-            if isinstance(cell, agent.Tree):
+            if isinstance(cell, agent.Bush):
+                if cell.condition == "alive":
+                    screen.blit(im.BUSH_IMG, (j * im.cell_size, i * im.cell_size))
+                else:
+                    screen.blit(im.BUSH_BURN_IMG, (j * im.cell_size, i * im.cell_size))
+            elif isinstance(cell, agent.Tree):
                 if cell.condition == "alive":
                     screen.blit(im.TREE_ALIVE_IMG, (j * im.cell_size, i * im.cell_size))
                 elif cell.condition == "burning":
@@ -30,6 +36,7 @@ def draw_forest(screen, forest):
                     )
             elif isinstance(cell, agent.Barrier):
                 screen.blit(im.WATER_IMG, (j * im.cell_size, i * im.cell_size))
+
             if cell == "v":
                 pygame.draw.rect(
                     screen,
@@ -62,14 +69,29 @@ def draw_bombeiros(screen, lista_bombeiros):
             )
 
 
+def draw_animals(screen, animals):
+    for animal in animals:
+        if animal.status == "alive":
+            screen.blit(
+                im.CHICKEN_IMG, (animal.y * im.cell_size, animal.x * im.cell_size)
+            )
+
+
 def init_screen():
     screen = pygame.display.set_mode((im.tela_x, im.tela_y))
-    # Podemos arrumar um jeito mais eficiente de determinar a matriz
+
+    # Determinando a matriz com Bush (1/5), Tree (3/5) e "v" (1/5)
     matriz = [
-        [agent.Tree((i, j)) for j in range(im.tela_x // im.cell_size)]
-        for i in range((im.tela_y // im.cell_size))
+        [
+            random.choices(
+                [agent.Bush((i, j)), agent.Tree((i, j)), "v"], weights=[1, 3, 1], k=1
+            )[0]
+            for j in range(im.tela_x // im.cell_size)
+        ]
+        for i in range(im.tela_y // im.cell_size)
     ]
 
+    # Configurando uma área da matriz como "black" (bloqueio)
     for i in range((im.tela_x // im.cell_size) // 4):
         for j in range(im.tela_y // im.cell_size):
             matriz[j][i] = "black"
@@ -87,10 +109,11 @@ def main():
     start2 = False
     loading = False
     bombeiros = [agent.bombeiro(matriz) for _ in range(10)]
+    animals = [agent.Animal(matriz) for _ in range(20)]
     forest.surge_trees = True
 
     # Passos por segundo
-    steps_by_second = 30
+    steps_by_second = 15
     TIMERSTEPEVENT = pygame.USEREVENT + 1
     pygame.time.set_timer(TIMERSTEPEVENT, 1000 // steps_by_second)
 
@@ -157,6 +180,9 @@ def main():
                     for bombeirx in bombeiros_vivos:
                         bombeirx.update_condition()
 
+                    for animal in animals:
+                        animal.update_condition()
+
         # Verifica se a velocidade foi alterada
         if slider.getValue() != steps_by_second:
             steps_by_second = slider.getValue()
@@ -169,6 +195,7 @@ def main():
             if bomb.status != "dead":
                 bombeiros_vivos.append(bomb)
         draw_bombeiros(screen, bombeiros_vivos)
+        draw_animals(screen, animals)
 
         # Desenhar o botão apenas se ele estiver visível
         if im.start_but.visible:
