@@ -1,8 +1,7 @@
-
 import pygame
 import time
 import agents as agent
-from forest import Forest 
+from forest import Forest
 import images_but as im
 
 import pygame_widgets
@@ -11,6 +10,7 @@ from pygame_widgets.textbox import TextBox
 
 pygame.init()
 clock = pygame.time.Clock()
+
 
 def draw_forest(screen, forest):
 
@@ -21,9 +21,13 @@ def draw_forest(screen, forest):
                 if cell.condition == "alive":
                     screen.blit(im.TREE_ALIVE_IMG, (j * im.cell_size, i * im.cell_size))
                 elif cell.condition == "burning":
-                    screen.blit(im.TREE_BURNING_IMG, (j * im.cell_size, i * im.cell_size))
+                    screen.blit(
+                        im.TREE_BURNING_IMG, (j * im.cell_size, i * im.cell_size)
+                    )
                 elif cell.condition == "burned":
-                    screen.blit(im.TREE_BURNED_IMG, (j * im.cell_size, i * im.cell_size))
+                    screen.blit(
+                        im.TREE_BURNED_IMG, (j * im.cell_size, i * im.cell_size)
+                    )
             elif isinstance(cell, agent.Barrier):
                 screen.blit(im.WATER_IMG, (j * im.cell_size, i * im.cell_size))
             if cell == "v":
@@ -39,52 +43,50 @@ def draw_forest(screen, forest):
                     (j * im.cell_size, i * im.cell_size, im.cell_size, im.cell_size),
                 )
 
+
 def draw_bombeiros(screen, lista_bombeiros):
-        for bombeiro in lista_bombeiros:
-            if bombeiro.status == "alive":
-                screen.blit(
-                    im.FIREMAN_IMG, (bombeiro.y * im.cell_size, bombeiro.x * im.cell_size)
-                )
-            if bombeiro.status == "burning":
-                screen.blit(
-                    im.FIREMAN_BURNING2_IMG,
-                    (bombeiro.y * im.cell_size, bombeiro.x * im.cell_size),
-                )
-            if bombeiro.status == "burning2":
-                screen.blit(
-                    im.FIREMAN_BURNING1_IMG,
-                    (bombeiro.y * im.cell_size, bombeiro.x * im.cell_size),
-                )
+    for bombeiro in lista_bombeiros:
+        if bombeiro.status == "alive":
+            screen.blit(
+                im.FIREMAN_IMG, (bombeiro.y * im.cell_size, bombeiro.x * im.cell_size)
+            )
+        if bombeiro.status == "burning":
+            screen.blit(
+                im.FIREMAN_BURNING2_IMG,
+                (bombeiro.y * im.cell_size, bombeiro.x * im.cell_size),
+            )
+        if bombeiro.status == "burning2":
+            screen.blit(
+                im.FIREMAN_BURNING1_IMG,
+                (bombeiro.y * im.cell_size, bombeiro.x * im.cell_size),
+            )
+
 
 def init_screen():
-        screen = pygame.display.set_mode((im.tela_x, im.tela_y))
-        #Podemos arrumar um jeito mais eficiente de determinar a matriz
-        matriz = [
-            [agent.Tree((i, j)) for j in range(im.tela_x // im.cell_size)]
-            for i in range((im.tela_y // im.cell_size))
-        ]
+    screen = pygame.display.set_mode((im.tela_x, im.tela_y))
+    # Podemos arrumar um jeito mais eficiente de determinar a matriz
+    matriz = [
+        [agent.Tree((i, j)) for j in range(im.tela_x // im.cell_size)]
+        for i in range((im.tela_y // im.cell_size))
+    ]
 
+    for i in range((im.tela_x // im.cell_size) // 4):
+        for j in range(im.tela_y // im.cell_size):
+            matriz[j][i] = "black"
 
-        for i in range((im.tela_x//im.cell_size)//4):
-            for j in range(im.tela_y // im.cell_size):
-                matriz[j][i] = "black"
+    return matriz, screen
 
-
-        return matriz, screen
 
 def main():
 
-
     matriz, screen = init_screen()
     forest = Forest(matriz)  # Inicializando a Floresta
-    forest.vent = agent.vento()
 
     running = True
     start = False  # Controle para verificar se o incêndio deve iniciar
     start2 = False
     loading = False
     bombeiros = [agent.bombeiro(matriz) for _ in range(10)]
-    bombeiros_andar = False
     forest.surge_trees = True
 
     # Passos por segundo
@@ -96,7 +98,9 @@ def main():
     label.setText(f"Passos por segundo: {steps_by_second}")
     label.disable()
 
-    slider = Slider(screen, 20, 60, 250, 12, min=1, max=100, step=1, initial=steps_by_second)
+    slider = Slider(
+        screen, 20, 60, 250, 12, min=1, max=100, step=1, initial=steps_by_second
+    )
 
     while running:
         events = pygame.event.get()
@@ -147,16 +151,11 @@ def main():
                     start = False
 
                 if loading:
-                    a = forest.update_forest()
-                    if a:
-                        forest.incendio()
+
                     forest.update_forest()
-                    if bombeiros_andar:
-                        for bombeirx in bombeiros_vivos:
-                            bombeirx.andar()
-                            # bombeirx.probability_atualization()
-                            # leia sobre na função
-                            bombeirx.atualizar_bombeiro()
+
+                    for bombeirx in bombeiros_vivos:
+                        bombeirx.update_condition()
 
         # Verifica se a velocidade foi alterada
         if slider.getValue() != steps_by_second:
@@ -169,7 +168,7 @@ def main():
         for bomb in bombeiros:
             if bomb.status != "dead":
                 bombeiros_vivos.append(bomb)
-        draw_bombeiros(screen,bombeiros_vivos)
+        draw_bombeiros(screen, bombeiros_vivos)
 
         # Desenhar o botão apenas se ele estiver visível
         if im.start_but.visible:
@@ -190,7 +189,7 @@ def main():
 
         pygame.display.flip()  # Atualiza a tela
 
-        clock.tick(60) # Limita o FPS a 60
+        clock.tick(60)  # Limita o FPS a 60
 
     pygame.quit()
 
