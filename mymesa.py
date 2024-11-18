@@ -71,10 +71,12 @@ def draw_bombeiros(screen, lista_bombeiros):
 
 def draw_animals(screen, animals):
     for animal in animals:
-        if animal.status == "alive":
+        if animal.status == "alive" and animal.egg == False:
             screen.blit(
                 im.CHICKEN_IMG, (animal.y * im.cell_size, animal.x * im.cell_size)
             )
+        if animal.status == "alive" and animal.egg == True:
+            screen.blit(im.EGG_IMG, (animal.y * im.cell_size, animal.x * im.cell_size))
 
 
 def init_screen():
@@ -108,12 +110,12 @@ def main():
     start = False  # Controle para verificar se o incêndio deve iniciar
     start2 = False
     loading = False
-    bombeiros = [agent.bombeiro(matriz) for _ in range(10)]
-    animals = [agent.Animal(matriz) for _ in range(20)]
+    bombeiros = [agent.bombeiro(matriz) for _ in range(0)]
+    animals = [agent.Animal(matriz) for _ in range(10)]
     forest.surge_trees = True
 
     # Passos por segundo
-    steps_by_second = 15
+    steps_by_second = 10
     TIMERSTEPEVENT = pygame.USEREVENT + 1
     pygame.time.set_timer(TIMERSTEPEVENT, 1000 // steps_by_second)
 
@@ -181,7 +183,9 @@ def main():
                         bombeirx.update_condition()
 
                     for animal in animals:
-                        animal.update_condition()
+                        a = animal.update_condition()
+                        if a:
+                            animals.append(a)
 
         # Verifica se a velocidade foi alterada
         if slider.getValue() != steps_by_second:
