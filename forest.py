@@ -25,7 +25,9 @@ class Forest:
         fire = True
         for i in range(self.n):
             for j in range(self.m):
-                if isinstance(self.matriz[i][j], agent.Tree):
+                if isinstance(self.matriz[i][j], agent.Tree) or isinstance(
+                    self.matriz[i][j], agent.Bush
+                ):
                     if (
                         self.matriz[i][j].condition == "burning"
                         or self.matriz[i][j].condition == "burned"
@@ -35,9 +37,12 @@ class Forest:
                     self.matriz[i][j].update_condition(self)
 
                 if self.surge_trees:
-                    rand = random.randint(1, 100)
-                    if rand == 4:
+                    rand = random.randint(1, 200)
+                    if rand > 195:
                         if self.matriz[i][j] == "v":
                             self.matriz[i][j] = agent.Tree([i, j])
+                    if rand == 1:
+                        if self.matriz[i][j] == "v":
+                            self.matriz[i][j] = agent.Bush([i, j])
         if fire:
             self.incendio()  # Caso não tenha fogo, causa um incêndio aleatório
