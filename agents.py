@@ -320,7 +320,7 @@ class Tree(Agent):
 
 class Bush(Tree):
     def __init__(self, coord):
-        print("passei!")
+
         super().__init__(coord)
         self.density = random.randint(20, 50)  # Bushes têm densidade menor que árvores
 
