@@ -7,6 +7,7 @@ pygame.init()
 size_of_w = pygame.display.get_desktop_sizes()
 tela_x = int(size_of_w[0][0])
 tela_y = int(size_of_w[0][1])
+ADD_CHICKEN_IMG = pygame.image.load(os.path.join("images", "pixil-frame-0 (13).png"))
 EGG_IMG = pygame.image.load(os.path.join("images", "egg.png"))
 BUSH_BURN_IMG = pygame.image.load(os.path.join("images", "pixil-frame-0 (12).png"))
 BUSH_IMG = pygame.image.load(os.path.join("images", "pixil-frame-0 (11).png"))
@@ -31,6 +32,9 @@ FIREMAN_BURNING1_IMG = pygame.image.load(
 )
 
 cell_size = tela_x // 80
+ADD_CHICKEN_IMG = pygame.transform.scale(
+    ADD_CHICKEN_IMG, (4 * cell_size, 4 * cell_size)
+)
 EGG_IMG = pygame.transform.scale(EGG_IMG, (0.5 * cell_size, 0.5 * cell_size))
 BUSH_BURN_IMG = pygame.transform.scale(BUSH_BURN_IMG, (cell_size, cell_size))
 BUSH_IMG = pygame.transform.scale(BUSH_IMG, (cell_size, cell_size))
@@ -87,3 +91,4 @@ button_width, button_height = (
     BUTTOM_PAUSE_IMG.get_height(),
 )
 pause_but = agent.buttom(button_x, button_y, button_width, button_height)
+add_chicken_but = agent.buttom(250, 250, 300, 300)
