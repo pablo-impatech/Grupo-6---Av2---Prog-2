@@ -7,6 +7,9 @@ pygame.init()
 size_of_w = pygame.display.get_desktop_sizes()
 tela_x = int(size_of_w[0][0])
 tela_y = int(size_of_w[0][1])
+CHICKEN_DEAD_IMG = pygame.image.load(
+    os.path.join("images", "Cooked_Chicken_JE3_BE3.png")
+)
 ADD_CHICKEN_IMG = pygame.image.load(os.path.join("images", "pixil-frame-0 (13).png"))
 EGG_IMG = pygame.image.load(os.path.join("images", "egg.png"))
 BUSH_BURN_IMG = pygame.image.load(os.path.join("images", "pixil-frame-0 (12).png"))
@@ -35,6 +38,7 @@ cell_size = tela_x // 80
 ADD_CHICKEN_IMG = pygame.transform.scale(
     ADD_CHICKEN_IMG, (4 * cell_size, 4 * cell_size)
 )
+CHICKEN_DEAD_IMG = pygame.transform.scale(CHICKEN_DEAD_IMG, (cell_size, cell_size))
 EGG_IMG = pygame.transform.scale(EGG_IMG, (0.5 * cell_size, 0.5 * cell_size))
 BUSH_BURN_IMG = pygame.transform.scale(BUSH_BURN_IMG, (cell_size, cell_size))
 BUSH_IMG = pygame.transform.scale(BUSH_IMG, (cell_size, cell_size))

@@ -37,6 +37,8 @@ class Animal(Agent):
         self.status = "alive"
         self.egg = egg
         self.step = 0
+        self.passo = 0
+        self.morrendo = 0
 
         # O animal nasce em uma posição aleatória
         while True:
@@ -112,19 +114,30 @@ class Animal(Agent):
                 if neigh.condition == "burning":
                     self.life -= 0.01
                     if self.egg:
-                        self.life -= 0.1
+                        self.life -= 0.2
         if hungry:
-            self.life -= 0.001
+            self.life -= 0.01
 
         if self.life <= 0:
             self.status = "dead"
+            if self.egg:
+                self.status = "final"
 
     def update_condition(self):
-        if not self.egg:
-            self.mover_para_bush()
-            self.update_life()
+        if not self.egg and self.status != "dead" and self.status != "final":
+            self.passo += 1
+            if self.passo == 4:
+                self.mover_para_bush()
+                self.update_life()
+                self.passo = 0
             return self.procriar()
-        else:
+        if self.status == "dead":
+            self.morrendo += 1
+            if self.morrendo == 200:
+
+                self.status = "final"
+
+        elif self.egg:
             self.step += 1
             self.update_life()
             if self.step == 20:
