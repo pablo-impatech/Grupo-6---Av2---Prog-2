@@ -9,6 +9,8 @@ import pygame_widgets
 from pygame_widgets.slider import Slider
 from pygame_widgets.textbox import TextBox
 
+from liveplot import LivePlot, XValue, YValue, X_POS, Y_POS
+
 pygame.init()
 clock = pygame.time.Clock()
 
@@ -100,7 +102,6 @@ def init_screen():
 
     return matriz, screen
 
-
 def main():
 
     matriz, screen = init_screen()
@@ -137,6 +138,12 @@ def main():
         screen, 20, 250, 250, 12, min=1, max=200, step=1, initial=number_chickens
     )
     adding_chicken = False
+
+
+    LIMIT = 50
+    i = 0
+    YLst, XLst = [], []
+
     while running:
         events = pygame.event.get()
         for event in events:
@@ -207,6 +214,9 @@ def main():
 
                     forest.update_forest()
 
+                    YLst = YValue(YLst, LIMIT, lambda : forest.get_stats()["trees_alive"])
+                    XLst = XValue(XLst, i, LIMIT)
+
                     for bombeirx in bombeiros_vivos:
                         bombeirx.update_condition()
 
@@ -255,11 +265,15 @@ def main():
 
         label.setText(f"Passos por segundo: {slider.getValue()}")
         label2.setText(f"Número de galinhas: {slider_chicken.getValue()}")
-        pygame_widgets.update(events)
 
+        if len(XLst) == len(YLst):
+            LivePlot(XLst, YLst, (X_POS, Y_POS), (4, 2), screen)
+
+        pygame_widgets.update(events)
         pygame.display.flip()  # Atualiza a tela
 
         clock.tick(60)  # Limita o FPS a 60
+        i += 1
 
     pygame.quit()
 
