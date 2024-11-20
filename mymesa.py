@@ -70,13 +70,27 @@ def draw_bombeiros(screen, lista_bombeiros):
 
 
 def draw_animals(screen, animals):
+    remaining_animals = []  # Para armazenar os animais restantes
     for animal in animals:
-        if animal.status == "alive" and animal.egg == False:
+        print(f"Animal: ({animal.x}, {animal.y}), Status: {animal.status}")  # Debug
+
+        if animal.status == "alive" and not animal.egg:
             screen.blit(
                 im.CHICKEN_IMG, (animal.y * im.cell_size, animal.x * im.cell_size)
             )
-        if animal.status == "alive" and animal.egg == True:
+            remaining_animals.append(animal)
+        elif animal.status == "alive" and animal.egg:
             screen.blit(im.EGG_IMG, (animal.y * im.cell_size, animal.x * im.cell_size))
+            remaining_animals.append(animal)
+        elif animal.status == "dead":
+            screen.blit(
+                im.CHICKEN_DEAD_IMG, (animal.y * im.cell_size, animal.x * im.cell_size)
+            )
+            remaining_animals.append(animal)
+        elif animal.status == "final":
+            print("Removendo animal: ({animal.x}, {animal.y})")  # Debug
+
+    return remaining_animals
 
 
 def init_screen():
@@ -110,7 +124,7 @@ def main():
     start = False  # Controle para verificar se o incêndio deve iniciar
     start2 = False
     loading = False
-    bombeiros = [agent.bombeiro(matriz) for _ in range(0)]
+    bombeiros = [agent.bombeiro(matriz) for _ in range(110)]
     forest.surge_trees = True
 
     # Passos por segundo
@@ -231,8 +245,9 @@ def main():
         for bomb in bombeiros:
             if bomb.status != "dead":
                 bombeiros_vivos.append(bomb)
+
         draw_bombeiros(screen, bombeiros_vivos)
-        draw_animals(screen, animals)
+        animals = draw_animals(screen, animals)
 
         # Desenhar o botão apenas se ele estiver visível
         if im.start_but.visible:
