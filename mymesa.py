@@ -124,7 +124,9 @@ def main():
     start = False  # Controle para verificar se o incêndio deve iniciar
     start2 = False
     loading = False
-    bombeiros = [agent.bombeiro(matriz) for _ in range(110)]
+    num_fireman = 20
+    bombeiros = [agent.bombeiro(matriz) for _ in range(num_fireman)]
+    birds = [agent.Bird(matriz) for _ in range(100)]
     forest.surge_trees = True
 
     # Passos por segundo
@@ -132,25 +134,29 @@ def main():
     TIMERSTEPEVENT = pygame.USEREVENT + 1
     pygame.time.set_timer(TIMERSTEPEVENT, 1000 // steps_by_second)
 
-    label = TextBox(screen, 15, 10, 270, 40, fontSize=23)
+    label = TextBox(screen, 15, 10, 270, 30, fontSize=20)
     label.setText(f"Passos por segundo: {steps_by_second}")
     label.disable()
 
     slider = Slider(
-        screen, 20, 60, 250, 12, min=1, max=60, step=1, initial=steps_by_second
+        screen, 20, 50, 250, 12, min=1, max=60, step=1, initial=steps_by_second
     )
 
     number_chickens = 10
-    animals = [agent.Animal(matriz) for _ in range(10)]
-    numberstep = pygame.USEREVENT + 1
-    label2 = TextBox(screen, 15, 200, 270, 40, fontSize=23)
-    label2.setText(f"Número de galinhas: {steps_by_second}")
+    animals = [agent.Animal(matriz) for _ in range(number_chickens)]
+    label2 = TextBox(screen, 15, 90, 270, 30, fontSize=20)
+    label2.setText(f"Número de galinhas: {number_chickens}")
     label2.disable()
+    label3 = TextBox(screen,15,170,270,30, fontSize = 20)
+    label3.setText(f"Número de bombeiros: {num_fireman}")
 
     slider_chicken = Slider(
-        screen, 20, 250, 250, 12, min=1, max=200, step=1, initial=number_chickens
+        screen, 20, 130, 250, 12, min=1, max=200, step=1, initial=number_chickens
     )
     adding_chicken = False
+    adding_fireman = False
+    slider_fireman = Slider(screen, 20, 210 , 250, 12, min = 1, max = 200, step = 1, initial = num_fireman)
+
     while running:
         events = pygame.event.get()
         for event in events:
@@ -197,13 +203,16 @@ def main():
                 if im.add_chicken_but.is_button_clicked(event.pos):
                     print("galinha clicada")
                     adding_chicken = True
+                if im.add_fireman_but.is_button_clicked(event.pos):
+                    print("bombeiro colocado")
+                    adding_fireman = True
 
             elif event.type == pygame.MOUSEBUTTONUP:
+                mouse_x, mouse_y = event.pos
+                grid_x = mouse_y // im.cell_size
+                grid_y = mouse_x // im.cell_size
                 if adding_chicken:
                     # Soltar o mouse para adicionar a galinha
-                    mouse_x, mouse_y = event.pos
-                    grid_x = mouse_y // im.cell_size
-                    grid_y = mouse_x // im.cell_size
                     if matriz[grid_x][grid_y] != "black":
 
                         animals.append(
@@ -211,6 +220,11 @@ def main():
                         )  # Adiciona galinha
                     adding_chicken = False
                     print(f"Galinha adicionada na posição: ({grid_x}, {grid_y})")
+                elif adding_fireman:
+                    if matriz[grid_x][grid_y] != "black":
+                        bombeiros.append(agent.bombeiro(matriz, x=grid_x, y=grid_y))
+                        adding_fireman = False
+                    
 
             elif event.type == TIMERSTEPEVENT:
                 if start:
@@ -228,6 +242,8 @@ def main():
                         a = animal.update_condition()
                         if a:
                             animals.append(a)
+                    for bird in birds:
+                        bird.update_condition()
 
         # Verifica se a velocidade foi alterada
         if slider.getValue() != steps_by_second:
@@ -237,10 +253,12 @@ def main():
         if slider_chicken.getValue() != number_chickens:
             number_chickens = slider_chicken.getValue()
             animals = [agent.Animal(matriz) for _ in range(number_chickens)]
+        if slider_fireman.getValue() != num_fireman:
+            num_fireman = slider_fireman.getValue()
+            bombeiros = [agent.bombeiro(matriz) for _ in range(num_fireman)]
 
         screen.fill((85, 107, 47))
         draw_forest(screen, forest)
-
         bombeiros_vivos = []
         for bomb in bombeiros:
             if bomb.status != "dead":
@@ -264,12 +282,27 @@ def main():
             screen.blit(im.BUTTOM_PAUSE_IMG, (im.pause_but.x, im.pause_but.y))
 
         if im.add_chicken_but.visible:
-            screen.blit(
-                im.ADD_CHICKEN_IMG, (im.add_chicken_but.x, im.add_chicken_but.y)
-            )
+        
+            overlay = pygame.Surface((im.add_chicken_but.width , im.add_chicken_but.height))  
+            overlay.set_alpha(128)
+            overlay.fill((0, 0, 0)) 
+            screen.blit(overlay, (im.add_chicken_but.x, im.add_chicken_but.y)) 
+
+            # Desenhar a imagem do botão depois
+            #screen.blit(im.ADD_CHICKEN_IMG, (im.add_chicken_but.x, im.add_chicken_but.y))
+
+        if im.add_fireman_but.visible:
+            # Criar e desenhar o quadrado translúcido primeiro
+            overlay = pygame.Surface((im.add_fireman_but.width, im.add_fireman_but.height))  # Dimensões do botão
+            overlay.set_alpha(128)  # Define a transparência (0 totalmente transparente, 255 totalmente opaco)
+            overlay.fill((0, 0, 0))  # Preenche a superfície com preto
+            screen.blit(overlay, (im.add_fireman_but.x, im.add_fireman_but.y))  # Desenhar a superfície translúcida
+
+                    
 
         label.setText(f"Passos por segundo: {slider.getValue()}")
         label2.setText(f"Número de galinhas: {slider_chicken.getValue()}")
+        label3.setText(f"Número de bombeiros: {slider_fireman.getValue()}")
         pygame_widgets.update(events)
 
         pygame.display.flip()  # Atualiza a tela

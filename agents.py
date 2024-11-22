@@ -181,9 +181,33 @@ class Animal(Agent):
             if a == 1:
                 return Animal(self.matriz, self.x, self.y, True)
 
+class Bird:
+    def __init__(self, matriz, x=None, y=None):
+        self.matriz = matriz
+        self.x = x if x is not None else random.randint(0, len(matriz) - 1)
+        self.y = y if y is not None else random.randint(0, len(matriz[0]) - 1)
+        self.spread_prob = 0.3  # Chance de semear uma árvore.
+
+    def update_condition(self):
+        dx, dy = random.randint(-2, 2), random.randint(-2, 2)
+        nx, ny = self.x + dx, self.y + dy
+        if 0 <= nx < len(self.matriz) and 0 <= ny < len(self.matriz[0]):
+            self.x, self.y = nx, ny
+            if self.matriz[nx][ny] == "v" and random.random() < self.spread_prob:
+                self.matriz[nx][ny] = Tree([nx, ny])
+
+
+"""
+adicionar no fim do update_forest
+
+if hasattr(self, 'birds'):  # Verifica se a floresta tem pássaros.
+    for bird in self.birds:
+        bird.fly_and_seed()
+"""
+
 
 class bombeiro(Agent):
-    def __init__(self, matriz):
+    def __init__(self, matriz, x = None, y = None):
         self.step = 0  # Definindo o numero de atualizações para o bombeiro andar
         self.matriz = matriz  # Matriz da floresta
         self.life = 1  # O bombeiro terá vida igual a 1 e perderá conforme as árvores ao seu redor pegam fogo
@@ -196,6 +220,8 @@ class bombeiro(Agent):
             )
             if isinstance(matriz[self.x][self.y], Tree):
                 break
+        if x and y:
+            self.x, self.y = x,y
 
     def update_condition(self):
         self.andar()  # O bomebiro anda
