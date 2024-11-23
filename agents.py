@@ -265,12 +265,14 @@ class Bird:
         elif self.matrix[self.x][self.y] == "black":
             self.status= "dead"
 
-    def plant_tree(self,seed_prob=0.1):
+    def plant_tree(self,seed_prob=0.1, bush_prob=0.1):
         if self.status != "alive":
             return
         
         if self.matrix[self.x][self.y] == "v" and random.random() < seed_prob:
             self.matrix[self.x][self.y] = Tree([self.x, self.y])
+        elif self.matrix[self.x][self.y] == "v" and random.random() < bush_prob:
+            self.matrix[self.x][self.y] = Bush([self.x, self.y])
 
     def check_fire(self, fire_radius=1):
         if self.status != "alive":
