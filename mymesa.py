@@ -1,15 +1,34 @@
-import pygame
-import time
-import agents as agent
-from forest import Forest
-import images_but as im
-import random
+from os import environ
+environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
 
+import pygame
+import argparse
+import agents as agent
+import random
 import pygame_widgets
+
+import images_but as im
+
 from pygame_widgets.slider import Slider
 from pygame_widgets.textbox import TextBox
+from forest import Forest
+from helpers.simulation import Simulation
 
-from liveplot import LivePlot, XValue, YValue, X_POS, Y_POS
+parser = argparse.ArgumentParser(description="Fire Simulator")
+parser.add_argument("-s", "--simulation")
+parser.add_argument("-n", "--noscreen", action='store_true')
+args = parser.parse_args()
+
+# from liveplot import LivePlot, XValue, YValue, X_POS, Y_POS
+
+WITH_SIMULATION = False
+HEADLESS_SIMULATION = False
+
+if args.simulation:
+    WITH_SIMULATION = True
+
+if args.noscreen:
+    HEADLESS_SIMULATION = True
 
 pygame.init()
 clock = pygame.time.Clock()
@@ -84,6 +103,9 @@ def draw_animals(screen, animals):
 def init_screen():
     screen = pygame.display.set_mode((im.tela_x, im.tela_y))
 
+    if WITH_SIMULATION and HEADLESS_SIMULATION:
+        screen = pygame.display.set_mode((1,1))
+
     # Determinando a matriz com Bush (1/5), Tree (3/5) e "v" (1/5)
     matriz = [
         [
@@ -128,8 +150,7 @@ def main():
     )
 
     number_chickens = 10
-    animals = [agent.Animal(matriz) for _ in range(10)]
-    numberstep = pygame.USEREVENT + 1
+    animals = [agent.Animal(matriz) for _ in range(number_chickens)]
     label2 = TextBox(screen, 15, 200, 270, 40, fontSize=23)
     label2.setText(f"Número de galinhas: {steps_by_second}")
     label2.disable()
@@ -140,9 +161,15 @@ def main():
     adding_chicken = False
 
 
-    LIMIT = 50
+    # LIMIT = 50
     i = 0
-    YLst, XLst = [], []
+    # YLst, XLst = [], []
+    if WITH_SIMULATION:
+        simulation = Simulation(args.simulation, v=True)
+        loading = True
+        im.start_but.visible = False
+        im.pause_but.visible = False
+
 
     while running:
         events = pygame.event.get()
@@ -214,8 +241,14 @@ def main():
 
                     forest.update_forest()
 
-                    YLst = YValue(YLst, LIMIT, lambda : forest.get_stats()["trees_alive"])
-                    XLst = XValue(XLst, i, LIMIT)
+                    if WITH_SIMULATION:
+                        data = forest.get_stats()
+                        data["chickens"] = len(animals)
+                        simulation.write_simulation_data(data)
+                    
+                    # YLst = YValue(YLst, LIMIT, lambda : forest.get_stats()["trees_alive"])
+                    # XLst = XValue(XLst, i, LIMIT)
+                    
 
                     for bombeirx in bombeiros_vivos:
                         bombeirx.update_condition()
@@ -266,8 +299,8 @@ def main():
         label.setText(f"Passos por segundo: {slider.getValue()}")
         label2.setText(f"Número de galinhas: {slider_chicken.getValue()}")
 
-        if len(XLst) == len(YLst):
-            LivePlot(XLst, YLst, (X_POS, Y_POS), (4, 2), screen)
+        # if len(XLst) == len(YLst):
+        #     LivePlot(XLst, YLst, (X_POS, Y_POS), (4, 2), screen)
 
         pygame_widgets.update(events)
         pygame.display.flip()  # Atualiza a tela
