@@ -36,6 +36,12 @@ def draw_forest(screen, forest):
                     )
             elif isinstance(cell, agent.Barrier):
                 screen.blit(im.WATER_IMG, (j * im.cell_size, i * im.cell_size))
+            elif isinstance(cell, agent.House):
+                pygame.draw.rect(
+                    screen,
+                    (139, 69, 19),  # Cor marrom para a casa
+                    (j * im.cell_size, i * im.cell_size, im.cell_size, im.cell_size),
+                )
 
             if cell == "v":
                 pygame.draw.rect(
@@ -96,7 +102,7 @@ def draw_birds(screen, birds):
         PURPLE = (128, 0, 128)
 
         # Tamanho do quadrado (em pixels)
-        square_size = 8
+        square_size = 4
 
         # Coordenadas do quadrado (ajustadas para o tamanho de célula)
         square_x = int(bird.y * im.cell_size)
@@ -109,11 +115,12 @@ def draw_birds(screen, birds):
 def init_screen():
     screen = pygame.display.set_mode((im.tela_x, im.tela_y))
 
-    # Determinando a matriz com Bush (1/5), Tree (3/5) e "v" (1/5)
     matriz = [
         [
             random.choices(
-                [agent.Bush((i, j)), agent.Tree((i, j)), "v"], weights=[1, 3, 1], k=1
+                [agent.Bush((i, j)), agent.Tree((i, j)), "v"],
+                weights=[2, 3, 1],
+                k=1,
             )[0]
             for j in range(im.tela_x // im.cell_size)
         ]
@@ -295,7 +302,7 @@ def main():
             screen.blit(im.BUTTOM_DOWN_IMG, (im.down_but.x, im.down_but.y))
             screen.blit(im.BUTTOM_LEFT_IMG, (im.left_but.x, im.left_but.y))
             screen.blit(im.BUTTOM_RIGHT_IMG, (im.right_but.x, im.right_but.y))
-            screen.blit(im.BUTTOM_X_IMG, (im.x_but.x, im.x_but.y))
+            screen.blit(im.BUSH_IMG, (im.x_but.x, im.x_but.y))
 
         if im.pause_but.visible:
             screen.blit(im.BUTTOM_PAUSE_IMG, (im.pause_but.x, im.pause_but.y))
@@ -324,7 +331,12 @@ def main():
             screen.blit(
                 overlay, (im.add_fireman_but.x, im.add_fireman_but.y)
             )  # Desenhar a superfície translúcida
-
+        screen.blit(im.CARRO_BOMBEIRO_IMG, (300, 700))
+        screen.blit(im.CARRO_BOMBEIRO_IMG, (350, 725))
+        screen.blit(im.CARRO_BOMBEIRO_IMG, (325, 750))
+        screen.blit(im.CARRO_BOMBEIRO_IMG, (335, 700))
+        screen.blit(im.CARRO_BOMBEIRO_IMG, (345, 725))
+        screen.blit(im.CARRO_BOMBEIRO_IMG, (300, 750))
         label.setText(f"Passos por segundo: {slider.getValue()}")
         label2.setText(f"Número de galinhas: {slider_chicken.getValue()}")
         label3.setText(f"Número de bombeiros: {slider_fireman.getValue()}")
