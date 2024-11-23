@@ -253,26 +253,44 @@ class Bird:
         self.lifespan = random.randint(20, 50)
         self.matrix = matrix
 
+
     def move(self):
         if self.status != "alive":
             return
 
-        direction = random.choice(["up", "down", "left", "right"])
-        if direction == "up":
-            self.x -= 1
-        elif direction == "down":
-            self.x += 1
-        elif direction == "left":
-            self.y -= 1
-        elif direction == "right":
-            self.y += 1
+        destinations1 = [] # Destinos vazios
+        destinations2 = [] # Destinos não vazios
 
-        if self.x < 0 or self.x >= len(self.matrix):
+        for dx in range(-1, 2):
+            for dy in range(-1, 2):
+                x, y = self.x + dx, self.y + dy
+                if x<0 or x>=len(self.matrix):
+                    destinations1.append((x,y))
+                    continue
+                elif y<0 or y>=len(self.matrix[0]):
+                    destinations1.append((x,y))
+                    continue
+                cell = self.matrix[x][y]
+                if cell == "v":
+                    destinations1.append((x,y))
+                else:
+                    destinations2.append((x,y))
+
+        if destinations1:
+            new_position = random.choice(destinations1)
+            self.x = new_position[0]
+            self.y = new_position[1]
+        else:
+            new_position = random.choice(destinations2)
+            self.x = new_position[0]
+            self.y = new_position[1]
+
+        if self.x<0 or self.x>=len(self.matrix):
             self.status = "dead"
-        elif self.y < 0 or self.y >= len(self.matrix[0]):
+        elif self.y<0 or self.y>=len(self.matrix[0]):
             self.status = "dead"
         elif self.matrix[self.x][self.y] == "black":
-            self.status = "dead"
+            self.status= "dead"
 
     def plant_tree(self, seed_prob=0.1, bush_prob=0.1):
         if self.status != "alive":
