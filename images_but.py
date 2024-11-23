@@ -72,6 +72,8 @@ BUTTOM_PAUSE_IMG = pygame.transform.scale(
     BUTTOM_PAUSE_IMG, (4 * cell_size, 2 * cell_size)
 )
 
+add_fireman_but = agent.buttom(280,200,20,20)
+
 button_width, button_height = START_IMG.get_width(), START_IMG.get_height()
 button_x, button_y = tela_x // 2, tela_y // 2
 start_but = agent.buttom(button_x, button_y, button_width, button_height)
@@ -95,4 +97,4 @@ button_width, button_height = (
     BUTTOM_PAUSE_IMG.get_height(),
 )
 pause_but = agent.buttom(button_x, button_y, button_width, button_height)
-add_chicken_but = agent.buttom(250, 250, 300, 300)
+add_chicken_but = agent.buttom(280, 80, 20, 20)

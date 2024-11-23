@@ -48,9 +48,8 @@ class Animal(Agent):
             if isinstance(matriz[self.x][self.y], Tree):
                 break
 
-        if x:
+        if x and y:
             self.x = x
-        if y:
             self.y = y
 
     def bush_proximo(self):
@@ -112,11 +111,11 @@ class Animal(Agent):
                 hungry = False
             if isinstance(neigh, Tree):
                 if neigh.condition == "burning":
-                    self.life -= 0.01
+                    self.life -= 0.1
                     if self.egg:
                         self.life -= 0.2
         if hungry:
-            self.life -= 0.01
+            self.life -= 0.1
 
         if self.life <= 0:
             self.status = "dead"
@@ -133,7 +132,7 @@ class Animal(Agent):
             return self.procriar()
         if self.status == "dead":
             self.morrendo += 1
-            if self.morrendo == 200:
+            if self.morrendo == 100:
 
                 self.status = "final"
 
@@ -177,13 +176,59 @@ class Animal(Agent):
 
     def procriar(self):
         if self.status == "alive":
-            a = random.randint(1, 500)
+            a = random.randint(1, 200)
             if a == 1:
                 return Animal(self.matriz, self.x, self.y, True)
 
 
+class Bird:
+    def __init__(self, matriz, x=None, y=None):
+        self.matriz = matriz
+        self.condition = "alive"
+        while True:
+            self.x, self.y = random.randint(0, len(matriz) - 1), random.randint(
+                0, len(matriz[0]) - 1
+            )
+            if isinstance(matriz[self.x][self.y], Tree):
+                break
+
+        if x and y:
+            self.x = x
+            self.y = y
+        self.spread_prob = 1  # Chance de semear uma árvore.
+        self.step = 0
+
+    def update_condition(self):
+        self.step += 1
+        if self.step == 3:
+            dx, dy = random.randint(-2, 2), random.randint(-2, 2)
+            nx, ny = self.x + dx, self.y + dy
+            if 0 <= nx < len(self.matriz) and 0 <= ny < len(self.matriz[0]):
+                self.x, self.y = nx, ny
+                if self.matriz[nx][ny] == "v" and random.random() < self.spread_prob:
+                    b = random.randint(1, 3)
+                    if b == 1:
+                        self.matriz[nx][ny] = Tree([nx, ny])
+                    else:
+                        self.matriz[nx][ny] = Bush([nx, ny])
+                elif self.matriz[nx][ny] == "black":
+                    self.condition = "remove"
+            else:
+                self.condition = "remove"
+            self.step = 0
+
+    def at_listbirds(self, list_birds):
+        for bird in list_birds:
+            if bird.condition == "remove":
+                list_birds.remove(bird)
+
+        a = random.randint(0, 10)
+        if a == 1:
+            list_birds.append(Bird(self.matriz))
+
+
 class bombeiro(Agent):
-    def __init__(self, matriz):
+    def __init__(self, matriz, x=None, y=None):
         self.step = 0  # Definindo o numero de atualizações para o bombeiro andar
         self.matriz = matriz  # Matriz da floresta
         self.life = 1  # O bombeiro terá vida igual a 1 e perderá conforme as árvores ao seu redor pegam fogo
@@ -196,10 +241,13 @@ class bombeiro(Agent):
             )
             if isinstance(matriz[self.x][self.y], Tree):
                 break
+        if x and y:
+            self.x, self.y = x, y
 
     def update_condition(self):
         self.andar()  # O bomebiro anda
         # Verificando árvores que estão queimando
+        self.apaga_fogo()
         for neigh in self.neighbors(self.matriz):
             if isinstance(neigh, Tree):
                 if neigh.condition == "burning":
@@ -249,6 +297,19 @@ class bombeiro(Agent):
 
             self.step = 0
 
+    def apaga_fogo(self):
+        neigh = self.neighbors(self.matriz)
+        if self.matriz[self.x][self.y] != "v":
+            neigh.append(self.matriz[self.x][self.y])
+            print(self.matriz[self.x][self.y])
+        for n in neigh:
+            if isinstance(n, Tree):
+                self.matriz[n.x][n.y] = Tree([n.x, n.y])
+                break
+            else:
+                self.matriz[n.x][n.y] = Bush([n.x, n.y])
+                break
+
 
 class buttom:
     def __init__(self, x, y, width, height):
@@ -287,10 +348,10 @@ class Tree(Agent):
                 if vent.directions:
                     if neighbor in vent.neighbors_vento(self, matriz):
                         probability = min(80, probability + 30)
-                        # probability = 100  # Probabilidade determinada assim para melhorar a visualização do vento
+                        probability = 100  # Probabilidade determinada assim para melhorar a visualização do vento
                     else:
                         probability = max(40, probability - 20)
-                        # probability = 0
+                        probability = 0
                 if (
                     random.random() < probability / 100
                 ):  # queima o vizinho com probabilidade (1 - densidade da árvore)
@@ -302,11 +363,11 @@ class Tree(Agent):
         if self.next_condition == "burned":
             self.next_condition = "step"
             self.condition = "burned"
-            # self.attempt_to_burn(matriz, vent)
+            self.attempt_to_burn(matriz, vent)
 
         elif self.next_condition == "step":
             self.step += 1
-            # self.attempt_to_burn(matriz, vent)
+            self.attempt_to_burn(matriz, vent)
             if self.step == 3:
                 self.next_condition = "final"
 

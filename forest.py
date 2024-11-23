@@ -8,7 +8,7 @@ class Forest:
         self.n = len(matriz)
         self.m = len(matriz[0])
         self.vent = agent.vento()
-        self.surge_trees = True
+        self.surge_trees = False
 
     def incendio(self):
         for i in range(5):
