@@ -72,7 +72,6 @@ def draw_bombeiros(screen, lista_bombeiros):
 def draw_animals(screen, animals):
     remaining_animals = []  # Para armazenar os animais restantes
     for animal in animals:
-        print(f"Animal: ({animal.x}, {animal.y}), Status: {animal.status}")  # Debug
 
         if animal.status == "alive" and not animal.egg:
             screen.blit(
@@ -87,10 +86,24 @@ def draw_animals(screen, animals):
                 im.CHICKEN_DEAD_IMG, (animal.y * im.cell_size, animal.x * im.cell_size)
             )
             remaining_animals.append(animal)
-        elif animal.status == "final":
-            print("Removendo animal: ({animal.x}, {animal.y})")  # Debug
 
     return remaining_animals
+
+
+def draw_birds(screen, birds):
+    for bird in birds:
+        # Defina a cor roxa
+        PURPLE = (128, 0, 128)
+
+        # Tamanho do quadrado (em pixels)
+        square_size = 8
+
+        # Coordenadas do quadrado (ajustadas para o tamanho de célula)
+        square_x = int(bird.y * im.cell_size)
+        square_y = int(bird.x * im.cell_size)
+
+        # Desenha o quadrado na tela
+        pygame.draw.rect(screen, PURPLE, (square_x, square_y, square_size, square_size))
 
 
 def init_screen():
@@ -100,14 +113,14 @@ def init_screen():
     matriz = [
         [
             random.choices(
-                [agent.Bush((i, j)), agent.Tree((i, j)), "v"], weights=[1, 3, 1], k=1
+                [agent.Bush((i, j)), agent.Tree((i, j)), "v"], weights=[1, 3, 6], k=1
             )[0]
             for j in range(im.tela_x // im.cell_size)
         ]
         for i in range(im.tela_y // im.cell_size)
     ]
 
-    # Configurando uma área da matriz como "black" (bloqueio)
+    # Configurando uma área da matriz como "black"
     for i in range((im.tela_x // im.cell_size) // 4):
         for j in range(im.tela_y // im.cell_size):
             matriz[j][i] = "black"
@@ -126,8 +139,8 @@ def main():
     loading = False
     num_fireman = 20
     bombeiros = [agent.bombeiro(matriz) for _ in range(num_fireman)]
-    birds = [agent.Bird(matriz) for _ in range(100)]
-    forest.surge_trees = True
+    birds = [agent.Bird(matriz) for _ in range(10)]
+    forest.surge_trees = False
 
     # Passos por segundo
     steps_by_second = 10
@@ -147,7 +160,7 @@ def main():
     label2 = TextBox(screen, 15, 90, 270, 30, fontSize=20)
     label2.setText(f"Número de galinhas: {number_chickens}")
     label2.disable()
-    label3 = TextBox(screen,15,170,270,30, fontSize = 20)
+    label3 = TextBox(screen, 15, 170, 270, 30, fontSize=20)
     label3.setText(f"Número de bombeiros: {num_fireman}")
 
     slider_chicken = Slider(
@@ -155,7 +168,9 @@ def main():
     )
     adding_chicken = False
     adding_fireman = False
-    slider_fireman = Slider(screen, 20, 210 , 250, 12, min = 1, max = 200, step = 1, initial = num_fireman)
+    slider_fireman = Slider(
+        screen, 20, 210, 250, 12, min=1, max=200, step=1, initial=num_fireman
+    )
 
     while running:
         events = pygame.event.get()
@@ -219,12 +234,11 @@ def main():
                             agent.Animal(matriz, x=grid_x, y=grid_y)
                         )  # Adiciona galinha
                     adding_chicken = False
-                    print(f"Galinha adicionada na posição: ({grid_x}, {grid_y})")
+
                 elif adding_fireman:
                     if matriz[grid_x][grid_y] != "black":
                         bombeiros.append(agent.bombeiro(matriz, x=grid_x, y=grid_y))
                         adding_fireman = False
-                    
 
             elif event.type == TIMERSTEPEVENT:
                 if start:
@@ -242,8 +256,12 @@ def main():
                         a = animal.update_condition()
                         if a:
                             animals.append(a)
-                    for bird in birds:
-                        bird.update_condition()
+                    if birds:
+                        for bird in birds:
+                            bird.update_condition()
+                        birds[0].at_listbirds(birds)
+                    else:
+                        birds.append(agent.Bird(matriz))
 
         # Verifica se a velocidade foi alterada
         if slider.getValue() != steps_by_second:
@@ -266,6 +284,7 @@ def main():
 
         draw_bombeiros(screen, bombeiros_vivos)
         animals = draw_animals(screen, animals)
+        draw_birds(screen, birds)
 
         # Desenhar o botão apenas se ele estiver visível
         if im.start_but.visible:
@@ -282,23 +301,29 @@ def main():
             screen.blit(im.BUTTOM_PAUSE_IMG, (im.pause_but.x, im.pause_but.y))
 
         if im.add_chicken_but.visible:
-        
-            overlay = pygame.Surface((im.add_chicken_but.width , im.add_chicken_but.height))  
+
+            overlay = pygame.Surface(
+                (im.add_chicken_but.width, im.add_chicken_but.height)
+            )
             overlay.set_alpha(128)
-            overlay.fill((0, 0, 0)) 
-            screen.blit(overlay, (im.add_chicken_but.x, im.add_chicken_but.y)) 
+            overlay.fill((0, 0, 0))
+            screen.blit(overlay, (im.add_chicken_but.x, im.add_chicken_but.y))
 
             # Desenhar a imagem do botão depois
-            #screen.blit(im.ADD_CHICKEN_IMG, (im.add_chicken_but.x, im.add_chicken_but.y))
+            # screen.blit(im.ADD_CHICKEN_IMG, (im.add_chicken_but.x, im.add_chicken_but.y))
 
         if im.add_fireman_but.visible:
             # Criar e desenhar o quadrado translúcido primeiro
-            overlay = pygame.Surface((im.add_fireman_but.width, im.add_fireman_but.height))  # Dimensões do botão
-            overlay.set_alpha(128)  # Define a transparência (0 totalmente transparente, 255 totalmente opaco)
+            overlay = pygame.Surface(
+                (im.add_fireman_but.width, im.add_fireman_but.height)
+            )  # Dimensões do botão
+            overlay.set_alpha(
+                128
+            )  # Define a transparência (0 totalmente transparente, 255 totalmente opaco)
             overlay.fill((0, 0, 0))  # Preenche a superfície com preto
-            screen.blit(overlay, (im.add_fireman_but.x, im.add_fireman_but.y))  # Desenhar a superfície translúcida
-
-                    
+            screen.blit(
+                overlay, (im.add_fireman_but.x, im.add_fireman_but.y)
+            )  # Desenhar a superfície translúcida
 
         label.setText(f"Passos por segundo: {slider.getValue()}")
         label2.setText(f"Número de galinhas: {slider_chicken.getValue()}")
