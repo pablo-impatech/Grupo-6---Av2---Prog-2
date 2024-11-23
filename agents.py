@@ -226,6 +226,75 @@ class Bird:
         if a == 1:
             list_birds.append(Bird(self.matriz))
 
+class Tree(Agent):
+    def __init__(self, coord):
+        self.condition = "alive"
+        self.umidade = random.randint(80, 85) # Escolhe uma probabilidade de acordo com a umidade, entre 15% e 20% da árvore para que ela queime. Espera-se que as árvores tenham maior resistência ao fogo do que os arbustos.
+        self.next_condition = None
+        self.x = coord[0]
+        self.y = coord[1]
+        self.count = 0
+        self.step = 0
+
+    def attempt_to_burn(self, matriz, vent):
+        for neighbor in self.neighbors(matriz):
+            if neighbor.condition == "alive" and neighbor.next_condition != "burning":
+                probability = 100 - neighbor.umidade
+                if self.condition == "burned":  # A intensidade do fogo é menor
+                    probability -= 10
+                if vent.directions:
+                    if neighbor in vent.neighbors_vento(self, matriz):
+                        probability = min(80, probability + 30)
+                        probability = 100  # Probabilidade determinada assim para melhorar a visualização do vento
+                    else:
+                        probability = max(40, probability - 20)
+                        probability = 0
+                if (
+                    random.random() < probability / 100
+                ):  # queima o vizinho com probabilidade (1 - umidade da árvore)
+                    neighbor.next_condition = "burning"
+
+    def update_condition(self, forest):
+        matriz = forest.matriz
+        vent = forest.vent
+        if self.next_condition == "burned":
+            self.next_condition = "step"
+            self.condition = "burned"
+            self.attempt_to_burn(matriz, vent)
+
+        elif self.next_condition == "step":
+            self.step += 1
+            self.attempt_to_burn(matriz, vent)
+            if self.step == 3:
+                self.next_condition = "final"
+
+        elif self.next_condition == "final":
+            matriz[self.x][self.y] = "v"
+
+        if self.next_condition == "burning":  # Se o próximo estágio é queimando
+            self.attempt_to_burn(
+                matriz, vent
+            )  # queima os vizinhos com influência do vento
+            self.count += 1
+            self.condition = self.next_condition
+            if self.count == 2:
+                self.next_condition = "burned"
+
+    def __repr__(self):  # para visualizar a matriz
+        if self.condition == "alive":
+            return "1"
+        if self.condition == "burning":
+            return "b"
+        if self.condition == "burned":
+            return "0"
+
+
+class Bush(Tree):
+    def __init__(self, coord):
+
+        super().__init__(coord)
+        self.umidade = random.randint(50, 60)  # Bushes têm umidade menor que árvores
+
 
 class bombeiro(Agent):
     def __init__(self, matriz, x=None, y=None):
@@ -298,17 +367,28 @@ class bombeiro(Agent):
             self.step = 0
 
     def apaga_fogo(self):
+    # Obtém os vizinhos ao redor do bombeiro
         neigh = self.neighbors(self.matriz)
+        
+        # Verifica a posição atual do bombeiro e adiciona à lista de vizinhos, se necessário
         if self.matriz[self.x][self.y] != "v":
             neigh.append(self.matriz[self.x][self.y])
-            print(self.matriz[self.x][self.y])
+        
+        # Itera sobre os vizinhos
         for n in neigh:
             if isinstance(n, Tree):
-                self.matriz[n.x][n.y] = Tree([n.x, n.y])
-                break
-            else:
-                self.matriz[n.x][n.y] = Bush([n.x, n.y])
-                break
+                # Verifica se a árvore está no estágio "burning"
+                if n.condition == "burning":  # Supondo que 'condition' seja o atributo que guarda o estado da árvore
+                    # Apaga o fogo da árvore, criando uma nova árvore no estado saudável
+                    self.matriz[n.x][n.y] = Tree([n.x, n.y])
+                    break  # Apaga o fogo de apenas uma árvore de cada vez
+            elif isinstance(n, Bush):
+                # Verifica se o arbusto está no estágio "burning"
+                if n.condition == "burning":  # Supondo que 'condition' seja o atributo que guarda o estado do arbusto
+                    # Apaga o fogo do arbusto, criando um novo arbusto no estado saudável
+                    self.matriz[n.x][n.y] = Bush([n.x, n.y])
+                    break  # Apaga o fogo de apenas um arbusto de cada vez
+
 
 
 class buttom:
@@ -327,77 +407,6 @@ class buttom:
             )
         else:
             return None
-
-
-class Tree(Agent):
-    def __init__(self, coord):
-        self.condition = "alive"
-        self.density = random.randint(80, 90)
-        self.next_condition = None
-        self.x = coord[0]
-        self.y = coord[1]
-        self.count = 0
-        self.step = 0
-
-    def attempt_to_burn(self, matriz, vent):
-        for neighbor in self.neighbors(matriz):
-            if neighbor.condition == "alive" and neighbor.next_condition != "burning":
-                probability = 100 - neighbor.density
-                if self.condition == "burned":  # A intensidade do fogo é menor
-                    probability -= 10
-                if vent.directions:
-                    if neighbor in vent.neighbors_vento(self, matriz):
-                        probability = min(80, probability + 30)
-                        probability = 100  # Probabilidade determinada assim para melhorar a visualização do vento
-                    else:
-                        probability = max(40, probability - 20)
-                        probability = 0
-                if (
-                    random.random() < probability / 100
-                ):  # queima o vizinho com probabilidade (1 - densidade da árvore)
-                    neighbor.next_condition = "burning"
-
-    def update_condition(self, forest):
-        matriz = forest.matriz
-        vent = forest.vent
-        if self.next_condition == "burned":
-            self.next_condition = "step"
-            self.condition = "burned"
-            self.attempt_to_burn(matriz, vent)
-
-        elif self.next_condition == "step":
-            self.step += 1
-            self.attempt_to_burn(matriz, vent)
-            if self.step == 3:
-                self.next_condition = "final"
-
-        elif self.next_condition == "final":
-            matriz[self.x][self.y] = "v"
-
-        if self.next_condition == "burning":  # Se o próximo estágio é queimando
-            self.attempt_to_burn(
-                matriz, vent
-            )  # queima os vizinhos com influência do vento
-            self.count += 1
-            self.condition = self.next_condition
-            if self.count == 2:
-                self.next_condition = "burned"
-
-    def __repr__(self):  # para visualizar a matriz
-        if self.condition == "alive":
-            return "1"
-        if self.condition == "burning":
-            return "b"
-        if self.condition == "burned":
-            return "0"
-
-
-class Bush(Tree):
-    def __init__(self, coord):
-
-        super().__init__(coord)
-        self.density = random.randint(20, 50)  # Bushes têm densidade menor que árvores
-
 
 class Barrier:  # representará barreiras como água ou muro, algo assim
     def __init__(self, coord):

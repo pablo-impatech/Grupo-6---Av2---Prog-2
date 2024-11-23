@@ -113,7 +113,7 @@ def init_screen():
     matriz = [
         [
             random.choices(
-                [agent.Bush((i, j)), agent.Tree((i, j)), "v"], weights=[1, 3, 6], k=1
+                [agent.Bush((i, j)), agent.Tree((i, j)), "v"], weights=[1, 3, 1], k=1
             )[0]
             for j in range(im.tela_x // im.cell_size)
         ]
@@ -169,7 +169,7 @@ def main():
     adding_chicken = False
     adding_fireman = False
     slider_fireman = Slider(
-        screen, 20, 210, 250, 12, min=1, max=200, step=1, initial=num_fireman
+        screen, 20, 210, 250, 12, min=1, max=1000, step=1, initial=num_fireman
     )
 
     while running:
