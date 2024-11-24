@@ -13,6 +13,7 @@ CARRO_BOMBEIRO_IMG = pygame.image.load(
 CHICKEN_DEAD_IMG = pygame.image.load(
     os.path.join("images", "Cooked_Chicken_JE3_BE3.png")
 )
+CHUVA_BUT_IMG = pygame.image.load(os.path.join("images", "chuva_.png"))
 ADD_CHICKEN_IMG = pygame.image.load(os.path.join("images", "pixil-frame-0 (13).png"))
 EGG_IMG = pygame.image.load(os.path.join("images", "egg.png"))
 BUSH_BURN_IMG = pygame.image.load(os.path.join("images", "pixil-frame-0 (12).png"))
@@ -39,6 +40,9 @@ FIREMAN_BURNING1_IMG = pygame.image.load(
 
 but_size = tela_x // 80
 cell_size = tela_x // 150
+CHUVA_BUT_IMG = pygame.transform.scale(
+    CHUVA_BUT_IMG, (CHUVA_BUT_IMG.get_width() // 2, CHUVA_BUT_IMG.get_height() // 2)
+)
 CARRO_BOMBEIRO_IMG = pygame.transform.scale(
     CARRO_BOMBEIRO_IMG,
     (CARRO_BOMBEIRO_IMG.get_width() // 80, CARRO_BOMBEIRO_IMG.get_height() // 80),
@@ -97,10 +101,13 @@ button_x = 0.13 * tela_x
 right_but = agent.buttom(button_x, button_y, button_width, button_height)
 button_x = 0.1 * tela_x
 x_but = agent.buttom(button_x, button_y, button_width, button_height)
-button_x, button_y = 0.003 * tela_x * cell_size, 0.03 * tela_y * cell_size
+button_x, button_y = 0.0035 * tela_x * cell_size, 0.025 * tela_y * cell_size
 button_width, button_height = (
     BUTTOM_PAUSE_IMG.get_width(),
     BUTTOM_PAUSE_IMG.get_height(),
 )
 pause_but = agent.buttom(button_x, button_y, button_width, button_height)
 add_chicken_but = agent.buttom(280, 80, 20, 20)
+init_rain_but = agent.buttom(
+    200, 250, CHUVA_BUT_IMG.get_width(), CHUVA_BUT_IMG.get_height()
+)
