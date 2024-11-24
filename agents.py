@@ -130,6 +130,9 @@ class Animal(Agent):
                 self.status = "final"
 
     def update_condition(self):
+        if isinstance(self.matriz[self.x][self.y],Bush):
+            self.matriz[self.x][self.y].life -= 0.1
+
         if not self.egg and self.status != "dead" and self.status != "final":
             self.passo += 1
             if self.passo == 4:
@@ -149,6 +152,8 @@ class Animal(Agent):
             if self.step == 20:
                 self.egg = False
                 self.life = 1
+
+
         return None
 
     def andar(self):
@@ -188,52 +193,6 @@ class Animal(Agent):
                 return Animal(self.matriz, self.x, self.y, True)
 
 
-"""""
-class Bird:
-    def __init__(self, matriz, x=None, y=None):
-        self.matriz = matriz
-        self.condition = "alive"
-        while True:
-            self.x, self.y = random.randint(0, len(matriz) - 1), random.randint(
-                0, len(matriz[0]) - 1
-            )
-            if isinstance(matriz[self.x][self.y], Tree):
-                break
-
-        if x and y:
-            self.x = x
-            self.y = y
-        self.spread_prob = 1  # Chance de semear uma árvore.
-        self.step = 0
-
-    def update_condition(self):
-        self.step += 1
-        if self.step == 3:
-            dx, dy = random.randint(-2, 2), random.randint(-2, 2)
-            nx, ny = self.x + dx, self.y + dy
-            if 0 <= nx < len(self.matriz) and 0 <= ny < len(self.matriz[0]):
-                self.x, self.y = nx, ny
-                if self.matriz[nx][ny] == "v" and random.random() < self.spread_prob:
-                    b = random.randint(1, 3)
-                    if b == 1:
-                        self.matriz[nx][ny] = Tree([nx, ny])
-                    else:
-                        self.matriz[nx][ny] = Bush([nx, ny])
-                elif self.matriz[nx][ny] == "black":
-                    self.condition = "remove"
-            else:
-                self.condition = "remove"
-            self.step = 0
-
-    def at_listbirds(self, list_birds):
-        for bird in list_birds:
-            if bird.condition == "remove":
-                list_birds.remove(bird)
-
-        a = random.randint(0, 10)
-        if a == 1:
-            list_birds.append(Bird(self.matriz))
-""" ""
 
 
 class Bird:
@@ -292,7 +251,7 @@ class Bird:
         elif self.matrix[self.x][self.y] == "black":
             self.status= "dead"
 
-    def plant_tree(self, seed_prob=0.1, bush_prob=0.1):
+    def plant_tree(self, seed_prob=0.05, bush_prob=0.05):
         if self.status != "alive":
             return
 
@@ -300,6 +259,7 @@ class Bird:
             self.matrix[self.x][self.y] = Tree([self.x, self.y])
         elif self.matrix[self.x][self.y] == "v" and random.random() < bush_prob:
             self.matrix[self.x][self.y] = Bush([self.x, self.y])
+
 
     def check_fire(self, fire_radius=1):
         if self.status != "alive":
@@ -365,6 +325,8 @@ class Tree(Agent):
         self.y = coord[1]
         self.count = 0  # Contador para etapas de queima
         self.step = 0  # Etapas que a árvore passa antes de ser "final"
+        self.protect = None
+        self.protectcount = 0
 
     def attempt_to_burn(self, matriz, vent):
         """
@@ -433,7 +395,7 @@ class Tree(Agent):
                 self.attempt_to_burn(matriz, vent)  # Propaga o fogo para os vizinhos
             if self.count > 4:  # Queima por 2 etapas antes de ser marcada como "burned"
                 self.next_condition = "burned"
-
+        
     def __repr__(self):
         """
         Representação textual da árvore na matriz:
@@ -454,6 +416,13 @@ class Bush(Tree):
 
         super().__init__(coord)
         self.umidade = random.randint(50, 60)  # Bushes têm umidade menor que árvores
+        self.life = 1
+    
+    def update_condition(self, forest):
+        if self.life <= 0:
+            forest.matriz[self.x][self.y] = "v"
+        return super().update_condition(forest)
+
 
 
 class Rain:
@@ -465,22 +434,13 @@ class Rain:
         self.matriz = matriz
         self.intensity = intensity
 
-    def size_neighbors_rain(self, layers=4):
-        """
-        Retorna as coordenadas dos vizinhos ao redor de um ponto central no quadriculado.
-
-        :param center: Coordenada do ponto central (x, y).
-        :param layers: Número de camadas de vizinhos.
-        :return: Lista de coordenadas dos vizinhos.
-        """
+    def size_neighbors_rain(self):
         neighbors = []
         for i in range(len(self.matriz)):
             for j in range(len(self.matriz[0])):
                 cell = self.matriz[i][j]
                 if cell != "black":
                     neighbors.append([i, j])
-                    # pegar a coordenada da cell de alguma maneira
-        self.neighboors = neighbors
         return neighbors
 
     def rain_drop(self):
