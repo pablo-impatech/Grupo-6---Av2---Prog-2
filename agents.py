@@ -394,7 +394,7 @@ class Tree(Agent):
         if self.next_condition == "burned":
             self.condition = "burned"
             self.step += 1  # Passa um passo como "queimada"
-            if self.step == 3:  # Após 3 etapas, marca como finalizada
+            if self.step == 4:  # Após 3 etapas, marca como finalizada
                 self.next_condition = "final"
             else:
                 self.attempt_to_burn(matriz, vent)
@@ -402,12 +402,18 @@ class Tree(Agent):
         elif self.next_condition == "final":
             matriz[self.x][self.y] = "v"  # Some
 
+        elif self.next_condition == "alive":
+            if isinstance(self, Bush):
+                matriz[self.x][self.y] = Bush([self.x, self.y])
+            else:
+                matriz[self.x][self.y] = Tree([self.x, self.y])
+
         elif self.next_condition == "burning":
             self.count += 1  # Incrementa o contador enquanto está queimando
             self.condition = self.next_condition
             if self.count == 2:
                 self.attempt_to_burn(matriz, vent)  # Propaga o fogo para os vizinhos
-            if self.count > 2:  # Queima por 2 etapas antes de ser marcada como "burned"
+            if self.count > 4:  # Queima por 2 etapas antes de ser marcada como "burned"
                 self.next_condition = "burned"
 
     def __repr__(self):
@@ -430,6 +436,53 @@ class Bush(Tree):
 
         super().__init__(coord)
         self.umidade = random.randint(50, 60)  # Bushes têm umidade menor que árvores
+
+
+class Rain:
+    def __init__(self, matriz, intensity=50):
+        """
+        Essa classe recebe o valor intensidade e
+        ativa a chuva que atua em toda a matriz.
+        """
+        self.matriz = matriz
+        self.intensity = intensity
+
+    def size_neighbors_rain(self, layers=4):
+        """
+        Retorna as coordenadas dos vizinhos ao redor de um ponto central no quadriculado.
+
+        :param center: Coordenada do ponto central (x, y).
+        :param layers: Número de camadas de vizinhos.
+        :return: Lista de coordenadas dos vizinhos.
+        """
+        neighbors = []
+        for i in range(len(self.matriz)):
+            for j in range(len(self.matriz[0])):
+                cell = self.matriz[i][j]
+                if cell != "black":
+                    neighbors.append([i, j])
+                    # pegar a coordenada da cell de alguma maneira
+        self.neighboors = neighbors
+        return neighbors
+
+    def rain_drop(self):
+        neigh_drop = []  # vizinhança molhada
+        for n in self.size_neighbors_rain():
+            if random.randint(1, 100) < self.intensity:
+                neigh_drop.append(n)
+        return neigh_drop
+
+    def update_condition(self):
+        wet = self.rain_drop()  # lista de molhados
+        self.size_neighbors_rain()  # definindo o tamanho da chuva
+        for neighx, neighy in wet:
+            cell = self.matriz[neighx][neighy]
+            if isinstance(cell, Tree):
+                cell.condition = "alive"
+                cell.next_condition = "alive"
+            elif isinstance(cell, Bush):
+                cell.next_condition = "alive"
+                cell.condition = "alive"
 
 
 class bombeiro(Agent):

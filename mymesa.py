@@ -1,5 +1,6 @@
 from os import environ
-environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
+
+environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "1"
 
 import pygame
 import argparse
@@ -16,7 +17,7 @@ from helpers.simulation import Simulation
 
 parser = argparse.ArgumentParser(description="Fire Simulator")
 parser.add_argument("-s", "--simulation")
-parser.add_argument("-n", "--noscreen", action='store_true')
+parser.add_argument("-n", "--noscreen", action="store_true")
 args = parser.parse_args()
 
 # from liveplot import LivePlot, XValue, YValue, X_POS, Y_POS
@@ -133,11 +134,25 @@ def draw_birds(screen, birds):
         pygame.draw.rect(screen, PURPLE, (square_x, square_y, square_size, square_size))
 
 
+def draw_rain(rain, tela):
+    raindrops = rain.rain_drop()
+    for i in raindrops:
+        pygame.draw.circle(
+            tela,
+            (135, 206, 250),  # Cor azul claro para as gotas
+            (
+                i[1] * im.cell_size + im.cell_size // 2,
+                i[0] * im.cell_size + im.cell_size // 2,
+            ),
+            2,
+        )
+
+
 def init_screen():
     screen = pygame.display.set_mode((im.tela_x, im.tela_y))
 
     if WITH_SIMULATION and HEADLESS_SIMULATION:
-        screen = pygame.display.set_mode((1,1))
+        screen = pygame.display.set_mode((1, 1))
 
     # Determinando a matriz com Bush (1/5), Tree (3/5) e "v" (1/5)
     matriz = [
@@ -158,6 +173,7 @@ def init_screen():
             matriz[j][i] = "black"
 
     return matriz, screen
+
 
 def main():
 
@@ -202,8 +218,8 @@ def main():
     slider_fireman = Slider(
         screen, 20, 210, 250, 12, min=1, max=1000, step=1, initial=num_fireman
     )
-
-
+    raining = None
+    count_raining = 0
 
     # LIMIT = 50
     i = 0
@@ -213,7 +229,6 @@ def main():
         loading = True
         im.start_but.visible = False
         im.pause_but.visible = False
-
 
     while running:
         events = pygame.event.get()
@@ -264,6 +279,11 @@ def main():
                 if im.add_fireman_but.is_button_clicked(event.pos):
                     print("bombeiro colocado")
                     adding_fireman = True
+                if im.init_rain_but.is_button_clicked(event.pos):
+                    print("chuva iniciada")
+                    intensity = random.randint(0, 100)
+                    intensity = 10
+                    raining = agent.Rain(matriz, intensity)
 
             elif event.type == pygame.MOUSEBUTTONUP:
                 mouse_x, mouse_y = event.pos
@@ -296,10 +316,9 @@ def main():
                         data = forest.get_stats()
                         data["chickens"] = len(animals)
                         simulation.write_simulation_data(data)
-                    
+
                     # YLst = YValue(YLst, LIMIT, lambda : forest.get_stats()["trees_alive"])
                     # XLst = XValue(XLst, i, LIMIT)
-                    
 
                     for bombeirx in bombeiros_vivos:
                         bombeirx.update_condition()
@@ -337,6 +356,19 @@ def main():
         draw_bombeiros(screen, bombeiros_vivos)
         animals = draw_animals(screen, animals)
         draw_birds(screen, birds)
+        count_raining += 1
+        if count_raining == 80:
+            count_raining = 0
+            raining = None
+        start_rain_random = random.randint(1, 200)
+        if start_rain_random == 2:
+            intensity = random.randint(1, 30)
+            print(intensity)
+            raining = agent.Rain(matriz, intensity)
+        if raining:
+            raining.update_condition()
+            draw_rain(raining, screen)
+            raining.update_condition()
 
         # Desenhar o botão apenas se ele estiver visível
         if im.start_but.visible:
@@ -376,6 +408,9 @@ def main():
             screen.blit(
                 overlay, (im.add_fireman_but.x, im.add_fireman_but.y)
             )  # Desenhar a superfície translúcida
+
+        if im.init_rain_but.visible:
+            screen.blit(im.CHUVA_BUT_IMG, (im.init_rain_but.x, im.init_rain_but.y))
         screen.blit(im.CARRO_BOMBEIRO_IMG, (300, 700))
         screen.blit(im.CARRO_BOMBEIRO_IMG, (350, 725))
         screen.blit(im.CARRO_BOMBEIRO_IMG, (325, 750))
