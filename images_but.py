@@ -101,7 +101,7 @@ button_x = 0.13 * tela_x
 right_but = agent.buttom(button_x, button_y, button_width, button_height)
 button_x = 0.1 * tela_x
 x_but = agent.buttom(button_x, button_y, button_width, button_height)
-button_x, button_y = 0.003 * tela_x * cell_size, 0.03 * tela_y * cell_size
+button_x, button_y = 0.0035 * tela_x * cell_size, 0.025 * tela_y * cell_size
 button_width, button_height = (
     BUTTOM_PAUSE_IMG.get_width(),
     BUTTOM_PAUSE_IMG.get_height(),
