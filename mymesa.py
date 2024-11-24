@@ -209,6 +209,10 @@ def main():
     label2.disable()
     label3 = TextBox(screen, 15, 170, 270, 30, fontSize=20)
     label3.setText(f"Número de bombeiros: {num_fireman}")
+    number_birds = 150  # Número inicial de Birds
+    label4 = TextBox(screen, 15, 250, 270, 30, fontSize=20)
+    label4.setText(f"Número de Birds: {number_birds}")
+    label4.disable()
 
     slider_chicken = Slider(
         screen, 20, 130, 250, 12, min=1, max=200, step=1, initial=number_chickens
@@ -218,6 +222,10 @@ def main():
     slider_fireman = Slider(
         screen, 20, 210, 250, 12, min=1, max=1000, step=1, initial=num_fireman
     )
+
+    slider_bird = Slider(
+        screen, 20, 290, 250, 12, min=1, max=500, step=1, initial=number_birds
+    )  # Slider para Birds
     raining = None
     count_raining = 0
 
@@ -345,6 +353,9 @@ def main():
         if slider_fireman.getValue() != num_fireman:
             num_fireman = slider_fireman.getValue()
             bombeiros = [agent.bombeiro(matriz) for _ in range(num_fireman)]
+        if slider_bird.getValue() != number_birds:
+            number_birds = slider_bird.getValue()  # Atualiza o número de Birds
+            birds = [agent.Bird(matriz) for _ in range(number_birds)]
 
         screen.fill((85, 107, 47))
         draw_forest(screen, forest)
@@ -420,6 +431,8 @@ def main():
         label.setText(f"Passos por segundo: {slider.getValue()}")
         label2.setText(f"Número de galinhas: {slider_chicken.getValue()}")
         label3.setText(f"Número de bombeiros: {slider_fireman.getValue()}")
+
+        label4.setText(f"Número de Birds: {slider_bird.getValue()}")
 
         # if len(XLst) == len(YLst):
         #     LivePlot(XLst, YLst, (X_POS, Y_POS), (4, 2), screen)
