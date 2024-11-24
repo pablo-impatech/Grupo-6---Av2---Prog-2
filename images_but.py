@@ -109,5 +109,5 @@ button_width, button_height = (
 pause_but = agent.buttom(button_x , button_y + 400, button_width, button_height)
 add_chicken_but = agent.buttom(280, 80, 20, 20)
 init_rain_but = agent.buttom(
-    200, 350, CHUVA_BUT_IMG.get_width(), CHUVA_BUT_IMG.get_height()
+    300, 331, CHUVA_BUT_IMG.get_width(), CHUVA_BUT_IMG.get_height()
 )

@@ -185,6 +185,7 @@ def main():
     start2 = False
     loading = False
     num_fireman = 20
+    intensity_rain = 0
     bombeiros = [agent.bombeiro(matriz) for _ in range(num_fireman)]
     birds = [agent.Bird(matriz) for _ in range(150)]
     forest.surge_trees = False
@@ -213,6 +214,9 @@ def main():
     label4 = TextBox(screen, 15, 250, 270, 30, fontSize=20)
     label4.setText(f"Número de Birds: {number_birds}")
     label4.disable()
+    label5 = TextBox(screen, 15, 330, 270, 30, fontSize=20)
+    label5.setText(f"Intensidade da chuva: {intensity_rain}")
+    label5.disable()
 
     slider_chicken = Slider(
         screen, 20, 130, 250, 12, min=1, max=200, step=1, initial=number_chickens
@@ -226,6 +230,11 @@ def main():
     slider_bird = Slider(
         screen, 20, 290, 250, 12, min=1, max=500, step=1, initial=number_birds
     )  # Slider para Birds
+
+    slider_rain = Slider(
+        screen, 20, 370, 250, 12, min=1, max=100, step=1, initial=intensity_rain
+    ) # Slider para a chuva
+
     raining = None
     count_raining = 0
 
@@ -289,7 +298,7 @@ def main():
                     adding_fireman = True
                 if im.init_rain_but.is_button_clicked(event.pos):
                     print("chuva iniciada")
-                    intensity = random.randint(5, 15)
+                    intensity = slider_rain.getValue()
                     raining = agent.Rain(matriz, intensity)
 
             elif event.type == pygame.MOUSEBUTTONUP:
@@ -366,19 +375,21 @@ def main():
         draw_bombeiros(screen, bombeiros_vivos)
         animals = draw_animals(screen, animals)
         draw_birds(screen, birds)
-        if raining:
-            count_raining += 1
-            if count_raining == 80:
-                count_raining = 0
-                raining = None
-        start_rain_random = random.randint(1, 200)
-        if start_rain_random == 2:
-            intensity = random.randint(5, 15)
-            print(intensity)
-            raining = agent.Rain(matriz, intensity)
-        if raining:
-            raining.update_condition()
-            draw_rain(raining, screen)
+
+        if loading:
+            if raining:
+                count_raining += 1
+                if count_raining == 80:
+                    count_raining = 0
+                    raining = None
+            start_rain_random = random.randint(1, 200)
+            if start_rain_random == 2:
+                intensity = random.randint(5, 15)
+                print(intensity)
+                raining = agent.Rain(matriz, intensity)
+            if raining:
+                raining.update_condition()
+                draw_rain(raining, screen)
 
         # Desenhar o botão apenas se ele estiver visível
         if im.start_but.visible:
@@ -432,6 +443,7 @@ def main():
         label3.setText(f"Número de bombeiros: {slider_fireman.getValue()}")
 
         label4.setText(f"Número de Birds: {slider_bird.getValue()}")
+        label5.setText(f"Intensidade de chuva: {slider_rain.getValue()}")
 
         # if len(XLst) == len(YLst):
         #     LivePlot(XLst, YLst, (X_POS, Y_POS), (4, 2), screen)
