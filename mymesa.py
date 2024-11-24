@@ -289,8 +289,7 @@ def main():
                     adding_fireman = True
                 if im.init_rain_but.is_button_clicked(event.pos):
                     print("chuva iniciada")
-                    intensity = random.randint(0, 100)
-                    intensity = 10
+                    intensity = random.randint(5, 15)
                     raining = agent.Rain(matriz, intensity)
 
             elif event.type == pygame.MOUSEBUTTONUP:
@@ -367,19 +366,19 @@ def main():
         draw_bombeiros(screen, bombeiros_vivos)
         animals = draw_animals(screen, animals)
         draw_birds(screen, birds)
-        count_raining += 1
-        if count_raining == 80:
-            count_raining = 0
-            raining = None
+        if raining:
+            count_raining += 1
+            if count_raining == 80:
+                count_raining = 0
+                raining = None
         start_rain_random = random.randint(1, 200)
         if start_rain_random == 2:
-            intensity = random.randint(1, 30)
+            intensity = random.randint(5, 15)
             print(intensity)
             raining = agent.Rain(matriz, intensity)
         if raining:
             raining.update_condition()
             draw_rain(raining, screen)
-            raining.update_condition()
 
         # Desenhar o botão apenas se ele estiver visível
         if im.start_but.visible:
@@ -390,7 +389,7 @@ def main():
             screen.blit(im.BUTTOM_DOWN_IMG, (im.down_but.x, im.down_but.y))
             screen.blit(im.BUTTOM_LEFT_IMG, (im.left_but.x, im.left_but.y))
             screen.blit(im.BUTTOM_RIGHT_IMG, (im.right_but.x, im.right_but.y))
-            screen.blit(im.BUSH_IMG, (im.x_but.x, im.x_but.y))
+            screen.blit(im.BUTTOM_X_IMG, (im.x_but.x, im.x_but.y))
 
         if im.pause_but.visible:
             screen.blit(im.BUTTOM_PAUSE_IMG, (im.pause_but.x, im.pause_but.y))
