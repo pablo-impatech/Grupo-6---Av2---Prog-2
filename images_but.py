@@ -7,6 +7,12 @@ pygame.init()
 size_of_w = pygame.display.get_desktop_sizes()
 tela_x = int(size_of_w[0][0])
 tela_y = int(size_of_w[0][1])
+CARRO_BOMBEIRO_IMG = pygame.image.load(
+    os.path.join("images", "carro_bombeiros (1).png")
+)
+CHICKEN_DEAD_IMG = pygame.image.load(
+    os.path.join("images", "Cooked_Chicken_JE3_BE3.png")
+)
 ADD_CHICKEN_IMG = pygame.image.load(os.path.join("images", "pixil-frame-0 (13).png"))
 EGG_IMG = pygame.image.load(os.path.join("images", "egg.png"))
 BUSH_BURN_IMG = pygame.image.load(os.path.join("images", "pixil-frame-0 (12).png"))
@@ -31,10 +37,16 @@ FIREMAN_BURNING1_IMG = pygame.image.load(
     os.path.join("images", "pixil-frame-0 (9).png")
 )
 
-cell_size = tela_x // 80
+but_size = tela_x // 80
+cell_size = tela_x // 150
+CARRO_BOMBEIRO_IMG = pygame.transform.scale(
+    CARRO_BOMBEIRO_IMG,
+    (CARRO_BOMBEIRO_IMG.get_width() // 80, CARRO_BOMBEIRO_IMG.get_height() // 80),
+)
 ADD_CHICKEN_IMG = pygame.transform.scale(
     ADD_CHICKEN_IMG, (4 * cell_size, 4 * cell_size)
 )
+CHICKEN_DEAD_IMG = pygame.transform.scale(CHICKEN_DEAD_IMG, (cell_size, cell_size))
 EGG_IMG = pygame.transform.scale(EGG_IMG, (0.5 * cell_size, 0.5 * cell_size))
 BUSH_BURN_IMG = pygame.transform.scale(BUSH_BURN_IMG, (cell_size, cell_size))
 BUSH_IMG = pygame.transform.scale(BUSH_IMG, (cell_size, cell_size))
@@ -43,19 +55,17 @@ TREE_ALIVE_IMG = pygame.transform.scale(TREE_ALIVE_IMG, (cell_size, cell_size))
 TREE_BURNING_IMG = pygame.transform.scale(TREE_BURNING_IMG, (cell_size, cell_size))
 WATER_IMG = pygame.transform.scale(WATER_IMG, (cell_size, cell_size))
 TREE_BURNED_IMG = pygame.transform.scale(TREE_BURNED_IMG, (cell_size, cell_size))
-BUTTOM_UP_IMG = pygame.transform.scale(
-    BUTTOM_UP_IMG, (1.5 * cell_size, 1.5 * cell_size)
-)
+BUTTOM_UP_IMG = pygame.transform.scale(BUTTOM_UP_IMG, (1.5 * but_size, 1.5 * but_size))
 BUTTOM_LEFT_IMG = pygame.transform.scale(
-    BUTTOM_LEFT_IMG, (1.5 * cell_size, 1.5 * cell_size)
+    BUTTOM_LEFT_IMG, (1.5 * but_size, 1.5 * but_size)
 )
 BUTTOM_DOWN_IMG = pygame.transform.scale(
-    BUTTOM_DOWN_IMG, (1.5 * cell_size, 1.5 * cell_size)
+    BUTTOM_DOWN_IMG, (1.5 * but_size, 1.5 * but_size)
 )
 BUTTOM_RIGHT_IMG = pygame.transform.scale(
-    BUTTOM_RIGHT_IMG, (1.5 * cell_size, 1.5 * cell_size)
+    BUTTOM_RIGHT_IMG, (1.5 * but_size, 1.5 * but_size)
 )
-BUTTOM_X_IMG = pygame.transform.scale(BUTTOM_X_IMG, (1.5 * cell_size, 1.5 * cell_size))
+BUTTOM_X_IMG = pygame.transform.scale(BUTTOM_X_IMG, (1.5 * but_size, 1.5 * but_size))
 FIREMAN_IMG = pygame.transform.scale(FIREMAN_IMG, (1.5 * cell_size, 1.5 * cell_size))
 FIREMAN_BURNING1_IMG = pygame.transform.scale(
     FIREMAN_BURNING1_IMG, (1.5 * cell_size, 1.5 * cell_size)
@@ -63,10 +73,12 @@ FIREMAN_BURNING1_IMG = pygame.transform.scale(
 FIREMAN_BURNING2_IMG = pygame.transform.scale(
     FIREMAN_BURNING2_IMG, (1.5 * cell_size, 1.5 * cell_size)
 )
-START_IMG = pygame.transform.scale(START_IMG, (4 * cell_size, 2 * cell_size))
+START_IMG = pygame.transform.scale(START_IMG, (4 * but_size, 2 * but_size))
 BUTTOM_PAUSE_IMG = pygame.transform.scale(
-    BUTTOM_PAUSE_IMG, (4 * cell_size, 2 * cell_size)
+    BUTTOM_PAUSE_IMG, (4 * but_size, 2 * but_size)
 )
+
+add_fireman_but = agent.buttom(280, 200, 20, 20)
 
 button_width, button_height = START_IMG.get_width(), START_IMG.get_height()
 button_x, button_y = tela_x // 2, tela_y // 2
@@ -91,4 +103,4 @@ button_width, button_height = (
     BUTTOM_PAUSE_IMG.get_height(),
 )
 pause_but = agent.buttom(button_x, button_y, button_width, button_height)
-add_chicken_but = agent.buttom(250, 250, 300, 300)
+add_chicken_but = agent.buttom(280, 80, 20, 20)
