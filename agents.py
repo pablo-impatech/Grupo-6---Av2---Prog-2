@@ -213,43 +213,53 @@ class Bird:
         self.matrix = matrix
 
 
-    def move(self):
+    def move(self, distance=5):
+        """
+        Move o pássaro de acordo com a presença de fogo ou aleatoriamente.
+
+        :param distance: Distância de detecção (sempre 1, pois só verifica células adjacentes).
+        """
         if self.status != "alive":
-            return
+            return  # Pássaros mortos não podem se mover.
 
-        destinations1 = [] # Destinos vazios
-        destinations2 = [] # Destinos não vazios
+        rows = len(self.matrix)
+        cols = len(self.matrix[0])
 
-        for dx in range(-1, 2):
-            for dy in range(-1, 2):
-                x, y = self.x + dx, self.y + dy
-                if x<0 or x>=len(self.matrix):
-                    destinations1.append((x,y))
-                    continue
-                elif y<0 or y>=len(self.matrix[0]):
-                    destinations1.append((x,y))
-                    continue
-                cell = self.matrix[x][y]
-                if cell == "v":
-                    destinations1.append((x,y))
-                else:
-                    destinations2.append((x,y))
+        # Coordenadas das 8 células ao redor.
+        directions = [
+            (-1, -1), (-1, 0), (-1, 1),  # Cima
+            (0, -1),         (0, 1),     # Lados
+            (1, -1), (1, 0), (1, 1)      # Baixo
+        ]
 
-        if destinations1:
-            new_position = random.choice(destinations1)
-            self.x = new_position[0]
-            self.y = new_position[1]
-        else:
-            new_position = random.choice(destinations2)
-            self.x = new_position[0]
-            self.y = new_position[1]
+        fire_detected = False
+        safe_moves = []
 
-        if self.x<0 or self.x>=len(self.matrix):
+        for dx, dy in directions:
+            nx, ny = self.x + dx, self.y + dy
+
+            if 0 <= nx < rows and 0 <= ny < cols:
+                cell = self.matrix[nx][ny]
+                if isinstance(cell, Tree) and cell.condition == "burning":
+                    fire_detected = True
+                    # Move para a direção oposta ao fogo.
+                    opposite_x, opposite_y = self.x - dx, self.y - dy
+                    if 0 <= opposite_x < rows and 0 <= opposite_y < cols:
+                        self.x, self.y = opposite_x, opposite_y
+                        # Verifica se a nova posição é inválida.
+                        if self.matrix[self.x][self.y] == "black":
+                            self.status = "dead"
+                        return
+                elif cell != "black":
+                    safe_moves.append((nx, ny))
+
+        # Se nenhum fogo for detectado, move para uma célula adjacente aleatória.
+        if not fire_detected and safe_moves:
+            self.x, self.y = random.choice(safe_moves)
+
+        # Verifica se o pássaro saiu da matriz ou está em uma posição inválida.
+        if not (0 <= self.x < rows and 0 <= self.y < cols) or self.matrix[self.x][self.y] == "black":
             self.status = "dead"
-        elif self.y<0 or self.y>=len(self.matrix[0]):
-            self.status = "dead"
-        elif self.matrix[self.x][self.y] == "black":
-            self.status= "dead"
 
     def plant_tree(self, seed_prob=0.05, bush_prob=0.05):
         if self.status != "alive":
