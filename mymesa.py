@@ -1,13 +1,34 @@
-import pygame
-import time
-import agents as agent
-from forest import Forest
-import images_but as im
-import random
+from os import environ
+environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
 
+import pygame
+import argparse
+import agents as agent
+import random
 import pygame_widgets
+
+import images_but as im
+
 from pygame_widgets.slider import Slider
 from pygame_widgets.textbox import TextBox
+from forest import Forest
+from helpers.simulation import Simulation
+
+parser = argparse.ArgumentParser(description="Fire Simulator")
+parser.add_argument("-s", "--simulation")
+parser.add_argument("-n", "--noscreen", action='store_true')
+args = parser.parse_args()
+
+# from liveplot import LivePlot, XValue, YValue, X_POS, Y_POS
+
+WITH_SIMULATION = False
+HEADLESS_SIMULATION = False
+
+if args.simulation:
+    WITH_SIMULATION = True
+
+if args.noscreen:
+    HEADLESS_SIMULATION = True
 
 pygame.init()
 clock = pygame.time.Clock()
@@ -115,6 +136,10 @@ def draw_birds(screen, birds):
 def init_screen():
     screen = pygame.display.set_mode((im.tela_x, im.tela_y))
 
+    if WITH_SIMULATION and HEADLESS_SIMULATION:
+        screen = pygame.display.set_mode((1,1))
+
+    # Determinando a matriz com Bush (1/5), Tree (3/5) e "v" (1/5)
     matriz = [
         [
             random.choices(
@@ -133,7 +158,6 @@ def init_screen():
             matriz[j][i] = "black"
 
     return matriz, screen
-
 
 def main():
 
@@ -178,6 +202,18 @@ def main():
     slider_fireman = Slider(
         screen, 20, 210, 250, 12, min=1, max=1000, step=1, initial=num_fireman
     )
+
+
+
+    # LIMIT = 50
+    i = 0
+    # YLst, XLst = [], []
+    if WITH_SIMULATION:
+        simulation = Simulation(args.simulation, v=True)
+        loading = True
+        im.start_but.visible = False
+        im.pause_but.visible = False
+
 
     while running:
         events = pygame.event.get()
@@ -255,6 +291,15 @@ def main():
                 if loading:
 
                     forest.update_forest()
+
+                    if WITH_SIMULATION:
+                        data = forest.get_stats()
+                        data["chickens"] = len(animals)
+                        simulation.write_simulation_data(data)
+                    
+                    # YLst = YValue(YLst, LIMIT, lambda : forest.get_stats()["trees_alive"])
+                    # XLst = XValue(XLst, i, LIMIT)
+                    
 
                     for bombeirx in bombeiros_vivos:
                         bombeirx.update_condition()
@@ -340,11 +385,15 @@ def main():
         label.setText(f"Passos por segundo: {slider.getValue()}")
         label2.setText(f"Número de galinhas: {slider_chicken.getValue()}")
         label3.setText(f"Número de bombeiros: {slider_fireman.getValue()}")
-        pygame_widgets.update(events)
 
+        # if len(XLst) == len(YLst):
+        #     LivePlot(XLst, YLst, (X_POS, Y_POS), (4, 2), screen)
+
+        pygame_widgets.update(events)
         pygame.display.flip()  # Atualiza a tela
 
         clock.tick(60)  # Limita o FPS a 60
+        i += 1
 
     pygame.quit()
 
